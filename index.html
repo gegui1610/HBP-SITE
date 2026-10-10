@@ -780,7 +780,7 @@ window.SEED = {
     return html + `</div><div class="card"><p class="muted" style="margin:0;font-size:.8rem">Fonte: <a href="${META.sourceUrl}" target="_blank" rel="noopener" style="color:inherit">Pikalytics</a>. Última coleta: ${esc(M.collected)}. O botão acima atualiza uso, imagens, cores e top teams. Pokémon e nomes relacionados são marcas da Nintendo.</p></div>`;
   }
 
-  function calcNames(){ const names=[]; (currentMeta().usage||[]).forEach(x=>names.push(x.n)); (currentMeta().teams||[]).forEach(t=>(t.mons||[]).forEach(m=>names.push(m.n))); return [...new Set(names)].sort(); }
+  function calcNames(){ const names=[...(state.allPokemon||[])]; (currentMeta().usage||[]).forEach(x=>names.push(x.n)); (currentMeta().teams||[]).forEach(t=>(t.mons||[]).forEach(m=>names.push(m.n))); return [...new Set(names)].sort((a,b)=>a.localeCompare(b)); }
   function calcOpts(list, val){ return list.map(x=>`<option value="${esc(x)}" ${x===val?'selected':''}>${esc(x)}</option>`).join(""); }
   function renderCalc(){
     const c=state.calc, names=calcNames(), moves=[...new Set(["Flare Blitz","Close Combat","Earthquake","Rock Slide","Heat Wave","Moonblast","Shadow Ball","Make It Rain","Fake Out","Grassy Glide","Draco Meteor","Protect",...((currentMeta().teams||[]).flatMap(t=>t.mons.flatMap(m=>m.mv||[])))])].sort();
@@ -851,6 +851,9 @@ window.SEED = {
     } else if(state.tab === "meta"){
       title = "META VGC"; label = "Formato atual"; big = "Reg M-C";
       text = "Pokémon Champions VGC 2026 · dados do Pikalytics";
+    } else if(state.tab === "calc"){
+      title = "CALCULADORA DE DANO HPB"; label = "Modo"; big = "Duplas";
+      text = "Calcule dano entre qualquer Pokémon · Gen 9 · Doubles";
     } else if(state.tab === "contas"){
       title = "CONTAS"; label = "Membros"; big = String(state.profiles.filter(p => p.status === "approved").length);
       text = "contas aprovadas no site";
@@ -867,7 +870,7 @@ window.SEED = {
       const sp = superInfo(n); champ = sp ? sp.winner : null;
       text = sp ? `${sp.ligaChampion} (Liga) x ${sp.copaChampion} (Copa)` : "Aguardando os campeões da Liga e da Copa.";
     }
-    return `<section class="hero"><div><span class="hero-pill">${esc(seasonName(n))}</span><h1 class="hero-title">${title}</h1></div>
+    return `<section class="hero"><div><span class="hero-pill">${state.tab === "calc" ? "FERRAMENTAS HBP" : esc(seasonName(n))}</span><h1 class="hero-title">${title}</h1></div>
       <div class="hero-card"><div class="hc-label">${label}</div><div class="hc-name">${big != null ? big : (champ ? "🏆 " + esc(champ) : "A definir")}</div><p>${text}</p></div></section>`;
   }
 
