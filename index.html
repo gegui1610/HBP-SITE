@@ -379,6 +379,13 @@
   .calcresult strong { font-size:1.25rem; }
   .calcnote { font-size:.76rem; line-height:1.45; }
   @media(max-width:760px){ .calcgrid { grid-template-columns:1fr; } }
+
+  .dex-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:7px; max-height:520px; overflow:auto; padding:4px; }
+  .dex-chip { border:1px solid var(--line); background:var(--surface2); color:var(--text); border-radius:10px; padding:8px 9px; text-align:left; cursor:pointer; font-size:.78rem; transition:.15s ease; }
+  .dex-chip:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .dex-count { font-size:.76rem; color:var(--muted); margin:8px 0 10px; }
+  .mt-config { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .mt-config span { font-size:.68rem; padding:4px 7px; border-radius:999px; background:var(--surface2); color:var(--muted); }
 </style>
 </head>
 <body>
@@ -511,7 +518,7 @@ window.SEED = {
   const ADMIN_KEY = "hbp_admin_on";
   function loadAdminOn(){ try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch(e){ return false; } }
   let enterNext = true;
-  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false, metaLive: null, metaBusy: false, metaMsg: "", metaSearch: "", metaDetail: null, metaDetailBusy: false, metaDetailMsg: "", allPokemon: [], doubleFormats: null, formatsBusy: false, calc: { attacker:"Incineroar", defender:"Garchomp", move:"Flare Blitz", level:50, aAtk:252, aSpA:0, dHp:252, dDef:0, dSpD:0, weather:"", terrain:"", item:"", ability:"", nature:"Adamant" } };
+  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false, metaLive: null, metaBusy: false, metaMsg: "", metaSearch: "", dexQ: "", metaDetail: null, metaDetailBusy: false, metaDetailMsg: "", allPokemon: [], doubleFormats: null, formatsBusy: false, calc: { attacker:"Incineroar", defender:"Garchomp", move:"Flare Blitz", level:50, aAtk:252, aSpA:0, dHp:252, dDef:0, dSpD:0, weather:"", terrain:"", item:"", ability:"", nature:"Adamant" } };
 
   function seasonNums(){ return Object.keys(D.seasons).map(Number).sort((a,b)=>a-b); }
   function season(n){ return D.seasons[String(n)]; }
@@ -628,7 +635,7 @@ window.SEED = {
       <p class="muted" style="font-size:.72rem;margin:8px 0 0 0">"Usar" preenche habilidade, item e moves. Depois é só Salvar.</p></details>`;
   }
   function metaMonCard(m){
-    return `<div class="mt-mon"><div class="mt-mh"><img class="mt-poke-img" src="${esc(metaSprite(m.n))}" data-pokemon="${esc(m.n)}" onerror="HBP_imgFallback(this)" alt="${esc(m.n)}" loading="lazy"><div><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span><div class="muted mt-ai">${esc(m.a||"—")} · ${esc(m.i||"—")}</div></div></div><div class="mt-mv">${(m.mv||[]).map(x => `<span>${esc(x)}</span>`).join("")}</div></div>`;
+    return `<div class="mt-mon"><div class="mt-mh"><img class="mt-poke-img" src="${esc(metaSprite(m.n))}" data-pokemon="${esc(m.n)}" onerror="HBP_imgFallback(this)" alt="${esc(m.n)}" loading="lazy"><div><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span><div class="muted mt-ai">${esc(m.a||"—")} · ${esc(m.i||"—")}</div></div></div><div class="mt-config"><span>Level: ${esc(m.level||"50 (padrão VGC)")}</span><span>IVs: ${esc(m.ivs||"não publicados")}</span><span>EVs: ${esc(m.evs||"não publicados")}</span><span>Natureza: ${esc(m.nature||"não publicada")}</span></div><div class="mt-mv">${(m.mv||[]).map(x => `<span>${esc(x)}</span>`).join("")}</div><a class="muted" style="display:inline-block;margin-top:8px;font-size:.72rem" href="${META.sourceUrl}/${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Ver análise agregada de ${esc(m.n)} ↗</a></div>`;
   }
   function parsePikalyticsHTML(text){
     const root = new DOMParser().parseFromString(text,"text/html"), old=currentMeta();
@@ -662,6 +669,7 @@ window.SEED = {
         a:card.querySelector(".team-pokemon-prop-row .team-prop-val-text")?.textContent.trim()||"",
         i:card.querySelectorAll(".team-pokemon-prop-row .team-prop-val-text")[1]?.textContent.trim()||"",
         mv:[...card.querySelectorAll(".team-move-name")].map(x=>x.textContent.trim()),
+        level:"50 (padrão VGC)", ivs:"não publicados", evs:"não publicados", nature:"não publicada",
         img:card.querySelector("img")?.src
       })).filter(x=>x.n);
       return {r:i+1,p,rec,ev,mons};
@@ -748,6 +756,11 @@ window.SEED = {
     if(!d) return `<div class="card"><h2>Pesquisar Pokémon</h2><p class="muted">${esc(state.metaDetailMsg||"")}</p></div>`;
     return `<div class="card"><div class="meta-sync"><div class="meta-poke"><img src="${esc(metaSprite(d.name))}" data-pokemon="${esc(d.name)}" onerror="HBP_imgFallback(this)" alt="${esc(d.name)}"><div><h2 style="margin:0">${esc(d.name)}</h2><p class="muted" style="margin:3px 0 0">${esc(state.metaDetailMsg)}</p><p style="margin:6px 0 0"><b>Uso:</b> ${d.usage.toFixed(3)}% · <b>Winrate:</b> ${d.winrate ? d.winrate.toFixed(3)+'%' : '—'}</p></div></div><button class="ghost" onclick="HBP.clearMetaSearch()">Limpar</button></div><div class="calcgrid"><div><div class="sec2">Golpes mais usados</div>${detailRows(d.moves)}</div><div><div class="sec2">Itens mais usados</div>${detailRows(d.items)}</div><div><div class="sec2">Habilidades</div>${detailRows(d.abilities)}</div><div><div class="sec2">Pokémon parceiros</div>${detailRows(d.partners)}</div></div></div>`;
   }
+  function renderDexCatalog(){
+    const all=state.allPokemon||[], q=String(state.dexQ||"").trim().toLowerCase();
+    const shown=(q?all.filter(n=>n.toLowerCase().includes(q)):all);
+    return `<div class="card"><div class="meta-sync"><div><h2 style="margin:0 0 3px">Pokédex completa</h2><p class="muted" style="margin:0">Todos os Pokémon disponíveis para pesquisa. Clique em um nome para comparar as regulações em dupla.</p></div><input id="dex-q" placeholder="Filtrar catálogo…" value="${esc(state.dexQ||"")}" oninput="HBP.dexFilter(this.value)"></div><div class="dex-count">${shown.length} de ${all.length||"…"} Pokémon exibidos</div><div class="dex-grid">${shown.map(n=>`<button class="dex-chip" onclick='HBP.searchMetaPokemon(${JSON.stringify(n)})'>${esc(n)}</button>`).join("") || `<p class="pending">Nenhum Pokémon encontrado.</p>`}</div></div>`;
+  }
   function renderMeta(){
     const M=currentMeta(), q = (state.metaQ || "").trim().toLowerCase();
     const maxU = Math.max.apply(null, M.usage.map(u => u.u));
@@ -755,7 +768,7 @@ window.SEED = {
     M.usage.forEach((u, i) => {
       html += `<div class="usagerow"><span class="urank">${i + 1}</span><span class="uname meta-poke"><img src="${esc(metaSprite(u.n))}" data-pokemon="${esc(u.n)}" onerror="HBP_imgFallback(this)" alt="${esc(u.n)}" loading="lazy"><span><b>${esc(u.n)}</b> <span class="utypes">${metaTypes(u.t)}</span></span></span><span class="uval">${u.u.toFixed(2)}%</span><span class="uwr muted">${u.w ? u.w.toFixed(1)+'% vit.' : '—'}</span><span class="ubar"><i style="width:${(u.u / maxU * 100).toFixed(1)}%"></i></span></div>`;
     });
-    html += `</div><div class="card"><div class="meta-sync"><div><h2 style="margin:0 0 3px">Pesquisar Pokémon</h2><p class="muted" style="margin:0">Pesquise qualquer espécie; o site compara somente regulações oficiais em dupla e mostra a mais usada.</p></div><div class="meta-sync-actions"><input id="meta-search" list="meta-pokemon-list" placeholder="Ex.: Rillaboom" value="${esc(state.metaSearch||"")}" onkeydown="if(event.key==='Enter')HBP.searchMetaPokemon()"><datalist id="meta-pokemon-list">${M.usage.map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist><button class="primary" onclick="HBP.searchMetaPokemon()" ${state.metaDetailBusy?'disabled':''}>${state.metaDetailBusy?'Buscando…':'Pesquisar'}</button></div></div></div>${renderMetaDetail()}<div class="card"><h2>Cores mais comuns</h2><p class="muted" style="margin:0 0 6px 0">Pokémon que aparecem juntos nos mesmos times</p>`;
+    html += `</div><div class="card"><div class="meta-sync"><div><h2 style="margin:0 0 3px">Pesquisar Pokémon</h2><p class="muted" style="margin:0">Pesquise qualquer espécie; o site compara somente regulações oficiais em dupla e mostra a mais usada.</p></div><div class="meta-sync-actions"><input id="meta-search" list="meta-pokemon-list" placeholder="Ex.: Rillaboom" value="${esc(state.metaSearch||"")}" onkeydown="if(event.key==='Enter')HBP.searchMetaPokemon()"><datalist id="meta-pokemon-list">${(state.allPokemon.length?state.allPokemon:M.usage.map(x=>x.n)).map(x=>`<option value="${esc(x)}">`).join("")}</datalist><button class="primary" onclick="HBP.searchMetaPokemon()" ${state.metaDetailBusy?'disabled':''}>${state.metaDetailBusy?'Buscando…':'Pesquisar'}</button></div></div></div>${renderMetaDetail()}${renderDexCatalog()}<div class="card"><h2>Cores mais comuns</h2><p class="muted" style="margin:0 0 6px 0">Pokémon que aparecem juntos nos mesmos times</p>`;
     [["2", "Duplas"], ["3", "Trios"], ["4", "Quartetos"]].forEach(g => {
       html += `<div class="sec2">${g[1]}</div>`;
       (M.cores[g[0]]||[]).forEach(c => { html += `<div class="corerow"><span>${c.m.map(x=>`<span class="meta-poke"><img src="${esc(metaSprite(x))}" data-pokemon="${esc(x)}" onerror="HBP_imgFallback(this)" style="width:26px;height:26px;flex-basis:26px" alt="${esc(x)}">${esc(x)}</span>`).join(" + ")}</span><span class="muted">${c.c} times · ${c.p}%</span></div>`; });
@@ -1476,6 +1489,7 @@ window.SEED = {
       render();
     },
     metaFilter(v){ state.metaQ = String(v || "").trim(); render(); },
+    dexFilter(v){ state.dexQ = String(v || "").trim(); render(); },
     refreshMeta,
     searchMetaPokemon,
     clearMetaSearch(){ state.metaSearch=""; state.metaDetail=null; state.metaDetailMsg=""; render(); },
