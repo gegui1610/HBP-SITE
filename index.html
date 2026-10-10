@@ -369,6 +369,12 @@
   .sync-dot { width:8px; height:8px; display:inline-block; border-radius:50%; background:#37c781; margin-right:6px; box-shadow:0 0 0 4px rgba(55,199,129,.12); }
   .sync-dot.busy { background:#f2b84b; animation:pulse .9s ease-in-out infinite alternate; }
   @keyframes pulse { to { opacity:.35; transform:scale(.75); } }
+  .loading-screen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:#252932; background:linear-gradient(135deg,#fff 0%,#f2f4f7 48%,#eee9f7 100%); }
+  .loading-screen p { margin:0; color:#6b7078; font-size:.84rem; }
+  .loading-ball { width:74px; height:74px; border-radius:50%; position:relative; overflow:hidden; border:4px solid #20242d; background:#f7f7f7; box-shadow:0 10px 24px rgba(27,31,40,.18); animation:pokeSpin 1.15s linear infinite; }
+  .loading-ball::before { content:""; position:absolute; left:-4px; right:-4px; top:-4px; height:38px; background:#e7473f; border-bottom:4px solid #20242d; }
+  .loading-ball::after { content:""; position:absolute; width:22px; height:22px; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); background:#f7f7f7; border:4px solid #20242d; box-shadow:inset 0 0 0 4px #fff; }
+  @keyframes pokeSpin { to { transform:rotate(360deg); } }
   .calcgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
   .calcside { background:var(--inset); color:var(--inset-text); border-radius:20px 20px 20px 7px; padding:14px; --muted:#6b7078; --text:var(--inset-text); --surface2:#cfd5da; --surface:#fff; --line:rgba(0,0,0,.12); }
   .calcside h3 { margin:0 0 10px; }
@@ -1381,7 +1387,7 @@ window.SEED = {
   function render(){
     const app = document.getElementById("app");
     document.body.classList.remove("hasrail");
-    if(state.booting){ app.innerHTML = renderGate(`<p class="muted" style="text-align:center">Carregando…</p>`); return; }
+    if(state.booting){ app.innerHTML = `<div class="loading-screen" role="status" aria-live="polite"><div class="loading-ball" aria-hidden="true"></div><b>Carregando HBP…</b><p>Preparando sua batalha Pokémon</p></div>`; return; }
     if(!SB_OK()){
       app.innerHTML = renderGate(`<h2 class="authtitle">Falta configurar o Supabase</h2><p class="muted">Abra o arquivo <b>index.html</b>, procure por <b>SUPABASE_URL</b> e <b>SUPABASE_KEY</b> e cole a Project URL e a chave pública do seu projeto.</p>`);
       return;
