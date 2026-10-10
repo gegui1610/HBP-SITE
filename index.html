@@ -202,9 +202,82 @@
   .navpill { flex:1 1 100%; flex-wrap:wrap; justify-content:center; overflow:visible; }
   .navpill .logo { height:40px; }
   .userpill { flex:1 1 100%; justify-content:center; }
+
+  /* ===== fundo animado ===== */
+  .bgfx { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; --mx:0; --my:0; }
+  .bgfx i, .bgfx .ball { position:absolute; will-change:transform; transition:translate .9s cubic-bezier(.2,.8,.2,1); }
+  .bgfx i { border-radius:50%; filter:blur(70px); opacity:.34; translate:calc(var(--mx) * var(--k) * 1px) calc(var(--my) * var(--k) * 1px); }
+  .bgfx .b1 { --k:70; width:50vmax; height:50vmax; left:-14vmax; top:-16vmax; background:radial-gradient(circle at 35% 35%, #d4322a, transparent 68%); animation:drift1 28s ease-in-out infinite alternate; }
+  .bgfx .b2 { --k:-90; width:46vmax; height:46vmax; right:-16vmax; top:10vh; background:radial-gradient(circle at 60% 40%, #8e44d6, transparent 68%); animation:drift2 34s ease-in-out infinite alternate; }
+  .bgfx .b3 { --k:50; width:42vmax; height:42vmax; left:22vw; bottom:-22vmax; opacity:.24; background:radial-gradient(circle at 50% 50%, #f0b90b, transparent 68%); animation:drift3 40s ease-in-out infinite alternate; }
+  .bgfx .ball { border:3px solid #1d2025; border-radius:50%; opacity:.07; translate:calc(var(--mx) * var(--k) * 1px) calc(var(--my) * var(--k) * 1px); }
+  .bgfx .ball::before { content:""; position:absolute; left:0; right:0; top:50%; height:3px; margin-top:-1.5px; background:#1d2025; }
+  .bgfx .ball::after { content:""; position:absolute; left:50%; top:50%; width:26%; height:26%; margin:-13% 0 0 -13%; border:3px solid #1d2025; border-radius:50%; background:var(--bg); }
+  .bgfx .k1 { --k:-40; width:min(52vmin,420px); aspect-ratio:1; right:-9vmin; bottom:6vh; animation:spin 80s linear infinite, bob 11s ease-in-out infinite alternate; }
+  .bgfx .k2 { --k:30; width:min(30vmin,240px); aspect-ratio:1; left:-5vmin; top:44vh; animation:spin 55s linear infinite reverse, bob 9s ease-in-out infinite alternate-reverse; }
+  @media (prefers-color-scheme: dark) {
+    .bgfx i { opacity:.26; }
+    .bgfx .b3 { opacity:.16; }
+    .bgfx .ball { border-color:#e6e9ec; opacity:.06; }
+    .bgfx .ball::before { background:#e6e9ec; }
+    .bgfx .ball::after { border-color:#e6e9ec; }
+  }
+  @media (max-width:640px) { .bgfx i { filter:blur(48px); } }
+  @keyframes drift1 { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(10vmax,7vmax,0) scale(1.18); } }
+  @keyframes drift2 { from { transform:translate3d(0,0,0) scale(1.1); } to { transform:translate3d(-9vmax,9vmax,0) scale(.92); } }
+  @keyframes drift3 { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(14vmax,-6vmax,0) scale(1.2); } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes bob { from { margin-top:-12px; } to { margin-top:14px; } }
+
+  /* ===== entradas suaves (só ao trocar de aba/temporada/entrar) ===== */
+  @keyframes rise { from { opacity:0; transform:translateY(20px) scale(.985); } to { opacity:1; transform:none; } }
+  @keyframes pop { from { opacity:0; transform:scale(.6) translateY(8px); } to { opacity:1; transform:none; } }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+  @keyframes drop { from { opacity:0; transform:translateX(-50%) translateY(-8px) scale(.97); } to { opacity:1; transform:translateX(-50%); } }
+  @keyframes shine { from { background-position:0% 50%; } to { background-position:100% 50%; } }
+  @keyframes floaty { from { translate:0 -3px; } to { translate:0 5px; } }
+  @keyframes glow { 0%,100% { filter:drop-shadow(0 0 0 rgba(240,185,11,0)); } 50% { filter:drop-shadow(0 0 9px rgba(240,185,11,.7)); } }
+  main.enter > * { animation:rise .65s cubic-bezier(.2,.8,.2,1) backwards; }
+  main.enter > :nth-child(2) { animation-delay:.07s; } main.enter > :nth-child(3) { animation-delay:.14s; }
+  main.enter > :nth-child(4) { animation-delay:.21s; } main.enter > :nth-child(5) { animation-delay:.28s; }
+  main.enter > :nth-child(6) { animation-delay:.35s; } main.enter > :nth-child(n+7) { animation-delay:.42s; }
+  main.enter .mon { animation:pop .5s cubic-bezier(.3,1.5,.5,1) backwards; animation-delay:.35s; }
+  main.enter .mon:nth-child(2) { animation-delay:.41s; } main.enter .mon:nth-child(3) { animation-delay:.47s; }
+  main.enter .mon:nth-child(4) { animation-delay:.53s; } main.enter .mon:nth-child(5) { animation-delay:.59s; }
+  main.enter .mon:nth-child(n+6) { animation-delay:.65s; }
+  .overlay { animation:fade .2s ease; }
+  .modalbox { animation:pop .32s cubic-bezier(.2,1.2,.4,1); }
+  .seasonmenu { animation:drop .22s ease; }
+  .notice { animation:rise .4s ease backwards; }
+  .hero-title { background-size:220% 100%; animation:shine 8s ease-in-out infinite alternate; }
+  .hero-card { transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition:transform .25s ease-out; animation:floaty 6s ease-in-out infinite alternate; }
+  .player.winner { animation:glow 2.6s ease-in-out infinite; }
+
+  /* ===== interações ===== */
+  button { transition:transform .16s cubic-bezier(.3,1.4,.5,1), filter .2s, background-color .2s, box-shadow .25s, border-color .2s; }
+  button:active { transform:scale(.94); }
+  button.primary:hover { filter:brightness(1.1); box-shadow:0 8px 20px rgba(212,50,42,.45); transform:translateY(-1px); }
+  button.ghost:hover, .seasonbtn:hover { filter:brightness(1.12); transform:translateY(-1px); }
+  .navlink { transition:color .25s, transform .2s, border-color .25s; }
+  .navlink:hover { color:var(--text); transform:translateY(-1px); }
+  .card { position:relative; transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
+  .card::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0; transition:opacity .35s; background:radial-gradient(280px circle at var(--px,50%) var(--py,50%), rgba(255,255,255,.075), transparent 62%); }
+  .mon img { transition:transform .28s cubic-bezier(.3,1.6,.5,1), outline-color .2s; }
+  .battlecell, .weekcell, .teambox { transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  @media (hover:hover) {
+    .card:hover { transform:translateY(-3px); box-shadow:0 20px 38px rgba(20,22,26,.30), inset 0 1px 0 rgba(255,255,255,.07); }
+    .card:hover::after { opacity:1; }
+    .mon:hover img { transform:translateY(-5px) scale(1.1) rotate(-3deg); }
+    .battlecell:hover { transform:translateY(-2px); }
+    .teambox:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(20,22,26,.14); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  }
 </style>
 </head>
 <body>
+<div class="bgfx" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><span class="ball k1"></span><span class="ball k2"></span></div>
 <div id="app"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1"></script>
@@ -330,6 +403,7 @@ window.SEED = {
   const PAIRS = [["Dimitri","Sales"],["Dimitri","Miguel"],["Sales","Miguel"],["Renoir","Sales"],["Renoir","Dimitri"],["Renoir","Miguel"]];
   const ADMIN_KEY = "hbp_admin_on";
   function loadAdminOn(){ try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch(e){ return false; } }
+  let enterNext = true;
   let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false };
 
   function seasonNums(){ return Object.keys(D.seasons).map(Number).sort((a,b)=>a-b); }
@@ -790,6 +864,7 @@ window.SEED = {
   }
 
   async function afterAuth(){
+    enterNext = true;
     if(afterAuth.busy) return;
     afterAuth.busy = true;
     try {
@@ -970,7 +1045,7 @@ window.SEED = {
     if(!D){ app.innerHTML = renderGate(`<h2 class="authtitle">Sem dados ainda</h2><p class="muted" style="text-align:center">O admin precisa entrar primeiro para publicar os dados do torneio.</p>${btns}`); return; }
     if(!season(state.season)) state.season = D.currentSeason;
     const tab = (state.tab === "admins" && !state.admin) ? "liga" : state.tab;
-    let body = header() + "<main>" + renderNotice() + hero();
+    let body = header() + "<main" + (enterNext ? ' class="enter"' : "") + ">" + renderNotice() + hero(); enterNext = false;
     if(tab === "liga") body += renderLiga(state.season);
     else if(tab === "copa") body += renderCopa(state.season);
     else if(tab === "times") body += renderTimes(state.season);
@@ -1061,8 +1136,8 @@ window.SEED = {
       state.seasonOpen = false;
       render();
     },
-    switchTab(t){ if(t === "admins" && !state.admin) return; state.tab = t; state.seasonOpen = false; render(); },
-    switchSeason(n){ state.season = Number(n); render(); },
+    switchTab(t){ if(t === "admins" && !state.admin) return; enterNext = true; state.tab = t; state.seasonOpen = false; render(); },
+    switchSeason(n){ enterNext = true; state.season = Number(n); render(); },
     toggleSeasons(){ state.seasonOpen = !state.seasonOpen; render(); },
     pickSeason(n){ state.season = Number(n); state.seasonOpen = false; render(); },
     setAuthMode(m){ state.authMode = m; state.authMsg = ""; render(); },
@@ -1205,6 +1280,44 @@ window.SEED = {
   };
   window.HBP = HBP;
   boot();
+})();
+</script>
+<script>
+(function(){
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var fx = document.querySelector(".bgfx"), raf = 0, ev = null, tilted = null;
+  function frame(){
+    raf = 0; if(!ev) return;
+    var e = ev, t = e.target && e.target.closest ? e.target : null;
+    if(fx){
+      fx.style.setProperty("--mx", (e.clientX / window.innerWidth - .5).toFixed(3));
+      fx.style.setProperty("--my", (e.clientY / window.innerHeight - .5).toFixed(3));
+    }
+    if(!t) return;
+    var card = t.closest(".card");
+    if(card){
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--px", (e.clientX - r.left) + "px");
+      card.style.setProperty("--py", (e.clientY - r.top) + "px");
+    }
+    var hc = t.closest(".hero-card");
+    if(tilted && tilted !== hc){ tilted.style.setProperty("--rx", "0deg"); tilted.style.setProperty("--ry", "0deg"); tilted = null; }
+    if(hc){
+      var b = hc.getBoundingClientRect();
+      var x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5;
+      hc.style.setProperty("--ry", (x * 12).toFixed(2) + "deg");
+      hc.style.setProperty("--rx", (-y * 12).toFixed(2) + "deg");
+      tilted = hc;
+    }
+  }
+  document.addEventListener("pointermove", function(e){
+    if(e.pointerType === "touch") return;
+    ev = e; if(!raf) raf = requestAnimationFrame(frame);
+  }, { passive:true });
+  document.addEventListener("pointerleave", function(){
+    if(tilted){ tilted.style.setProperty("--rx", "0deg"); tilted.style.setProperty("--ry", "0deg"); tilted = null; }
+    if(fx){ fx.style.setProperty("--mx", "0"); fx.style.setProperty("--my", "0"); }
+  });
 })();
 </script>
 </body>
