@@ -885,6 +885,7 @@ window.SEED = {
       <div class="row1"><label>Bio</label><textarea id="pf-bio" rows="3">${esc(p.bio)}</textarea></div>
       <div class="row1"><label>Foto (quadrada fica melhor)</label><input id="pf-avatar" type="file" accept="image/*"></div>
       <div class="row1"><label>Banner (imagem larga, aparece esmaecendo até o fundo)</label><input id="pf-banner" type="file" accept="image/*"></div>
+      ${state.profileMsg ? `<p style="color:#ff8a80;font-size:.85rem;margin:8px 0 0">Não consegui salvar: ${esc(state.profileMsg)}</p>` : ""}
       <div class="modalbtns" style="margin-top:14px"><button class="ghost" onclick="HBP.closeProfile()">Cancelar</button><button class="primary" onclick="HBP.saveProfile()" ${state.profileBusy ? "disabled" : ""}>${state.profileBusy ? "Salvando…" : "Salvar"}</button></div>
     </div></div>`;
   }
@@ -1040,17 +1041,17 @@ window.SEED = {
       state.session = null; resetData(); state.authMsg = ""; render();
     },
     async reload(){ state.booting = true; render(); await afterAuth(); },
-    openProfile(){ state.profileEdit = true; render(); },
+    openProfile(){ state.profileEdit = true; state.profileMsg = ""; render(); },
     closeProfile(){ state.profileEdit = false; render(); },
     async saveProfile(){
       const uid = state.session.user.id;
       const val = id => { const el = document.getElementById(id); return el ? el.value : ""; };
       const display = val("pf-name").trim() || state.profile.username, bio = val("pf-bio").trim();
       let avatar = state.profile.avatar_url, banner = state.profile.banner_url;
-      state.profileBusy = true; render();
+      const af = (document.getElementById("pf-avatar") || {}).files ? document.getElementById("pf-avatar").files[0] : null;
+      const bf = (document.getElementById("pf-banner") || {}).files ? document.getElementById("pf-banner").files[0] : null;
+      state.profileBusy = true; state.profileMsg = ""; render();
       try {
-        const af = document.getElementById("pf-avatar").files[0];
-        const bf = document.getElementById("pf-banner").files[0];
         if(af){ avatar = (await uploadImage("avatars", `${uid}/avatar.png`, await resizeToBlob(af, 256, 256, "image/png"))) + "?v=" + Date.now(); }
         if(bf){ banner = (await uploadImage("banners", `${uid}/banner.jpg`, await resizeToBlob(bf, 1200, 400, "image/jpeg", 0.85))) + "?v=" + Date.now(); }
         const r = await sb.from("profiles").update({ display_name: display, bio, avatar_url: avatar, banner_url: banner }).eq("id", uid);
@@ -1058,7 +1059,10 @@ window.SEED = {
         Object.assign(state.profile, { display_name: display, bio, avatar_url: avatar, banner_url: banner });
         state.profiles = state.profiles.map(p => p.id === uid ? Object.assign({}, p, state.profile) : p);
         state.profileEdit = false;
-      } catch(e){ state.notice = "Não consegui salvar o perfil: " + friendlyError(e); }
+      } catch(e){
+        const m = (e && e.message) ? e.message : String(e);
+        state.profileMsg = /bucket not found/i.test(m) ? "O bucket de imagens (avatars/banners) não existe no Supabase." : friendlyError(e);
+      }
       state.profileBusy = false; render();
     },
     async adminSet(id, field, value){
