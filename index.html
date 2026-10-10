@@ -358,6 +358,27 @@
   .setrow:first-of-type { margin-top:8px; }
   .setinfo { min-width:0; }
   .setrow button { padding:6px 14px; flex-shrink:0; }
+
+  /* ===== Imagens do meta e calculadora ===== */
+  .meta-poke { display:inline-flex; align-items:center; gap:7px; min-width:0; }
+  .meta-poke img { width:38px; height:38px; object-fit:contain; image-rendering:auto; flex:0 0 38px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.2)); }
+  .mt-poke-img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
+  .mt-mh { align-items:center; }
+  .meta-sync { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .meta-sync-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .sync-dot { width:8px; height:8px; display:inline-block; border-radius:50%; background:#37c781; margin-right:6px; box-shadow:0 0 0 4px rgba(55,199,129,.12); }
+  .sync-dot.busy { background:#f2b84b; animation:pulse .9s ease-in-out infinite alternate; }
+  @keyframes pulse { to { opacity:.35; transform:scale(.75); } }
+  .calcgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  .calcside { background:var(--inset); color:var(--inset-text); border-radius:20px 20px 20px 7px; padding:14px; --muted:#6b7078; --text:var(--inset-text); --surface2:#cfd5da; --surface:#fff; --line:rgba(0,0,0,.12); }
+  .calcside h3 { margin:0 0 10px; }
+  .calcside label { display:block; margin-top:8px; font-size:.75rem; font-weight:700; color:var(--muted); }
+  .calcside input, .calcside select { width:100%; margin-top:4px; }
+  .calcrow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .calcresult { margin-top:14px; padding:16px; border-radius:18px; background:linear-gradient(135deg,rgba(212,50,42,.12),rgba(142,68,214,.16)); border:1px solid rgba(142,68,214,.25); }
+  .calcresult strong { font-size:1.25rem; }
+  .calcnote { font-size:.76rem; line-height:1.45; }
+  @media(max-width:760px){ .calcgrid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -365,6 +386,8 @@
 <div id="app"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1"></script>
+<script src="https://unpkg.com/@smogon/calc/dist/data/production.min.js"></script>
+<script src="https://unpkg.com/@smogon/calc/dist/production.min.js"></script>
 <script id="data-script">
 // Dados iniciais (só usados uma vez, quando o admin entra pela primeira vez e o banco está vazio)
 window.SEED = {
@@ -488,7 +511,7 @@ window.SEED = {
   const ADMIN_KEY = "hbp_admin_on";
   function loadAdminOn(){ try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch(e){ return false; } }
   let enterNext = true;
-  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false };
+  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false, metaLive: null, metaBusy: false, metaMsg: "", calc: { attacker:"Incineroar", defender:"Garchomp", move:"Flare Blitz", level:50, aAtk:252, aSpA:0, dHp:252, dDef:0, dSpD:0, weather:"", terrain:"", item:"", ability:"", nature:"Adamant" } };
 
   function seasonNums(){ return Object.keys(D.seasons).map(Number).sort((a,b)=>a-b); }
   function season(n){ return D.seasons[String(n)]; }
@@ -562,16 +585,20 @@ window.SEED = {
   // Foto fixa (snapshot) coletada em META.collected. Não atualiza sozinha.
   const META = {"format":"Pokémon Champions VGC 2026 · Reg M-C","source":"Pikalytics","sourceUrl":"https://www.pikalytics.com/pokedex/gen9championsvgc2026regmc","collected":"10/10/2026","usage":[{"n":"Rillaboom","u":35.2,"w":51.507,"t":["Grass"]},{"n":"Sneasler","u":31.76,"w":49.82,"t":["Fighting","Poison"]},{"n":"Incineroar","u":25.12,"w":49.814,"t":["Fire","Dark"]},{"n":"Golisopod","u":20.78,"w":51.116,"t":["Bug","Water"]},{"n":"Salamence","u":20.76,"w":50.204,"t":["Dragon","Flying"]},{"n":"Indeedee-F","u":20.25,"w":50.682,"t":["Psychic","Normal"]},{"n":"Kingambit","u":20.11,"w":49.585,"t":["Dark","Steel"]},{"n":"Farigiraf","u":19.66,"w":51.143,"t":["Normal","Psychic"]},{"n":"Basculegion","u":18.48,"w":48.393,"t":["Water","Ghost"]},{"n":"Garchomp","u":16.76,"w":48.403,"t":["Dragon","Ground"]},{"n":"Charizard","u":15.8,"w":50.581,"t":["Fire","Flying"]},{"n":"Gholdengo","u":15.1,"w":51.269,"t":["Steel","Ghost"]},{"n":"Archaludon","u":15.02,"w":52.029,"t":["Steel","Dragon"]},{"n":"Pelipper","u":12.05,"w":49.572,"t":["Water","Flying"]},{"n":"Whimsicott","u":11.43,"w":46.236,"t":["Grass","Fairy"]},{"n":"Milotic","u":11.22,"w":50.756,"t":["Water"]},{"n":"Raichu","u":10.55,"w":53.433,"t":["Electric"]},{"n":"Sylveon","u":9.61,"w":49.836,"t":["Fairy"]},{"n":"Politoed","u":9.6,"w":51.844,"t":["Water"]},{"n":"Arcanine-Hisui","u":9.31,"w":52.204,"t":["Fire","Rock"]},{"n":"Staraptor","u":9.04,"w":49.555,"t":["Normal","Flying"]},{"n":"Grimmsnarl","u":8.97,"w":50.541,"t":["Dark","Fairy"]},{"n":"Tyranitar","u":8.52,"w":51.073,"t":["Rock","Dark"]},{"n":"Gardevoir","u":7.68,"w":49.431,"t":["Psychic","Fairy"]},{"n":"Sinistcha","u":7.41,"w":47.396,"t":["Grass","Ghost"]}],"cores":{"2":[{"m":["Rillaboom","Sneasler"],"c":2607,"p":23.8},{"m":["Incineroar","Rillaboom"],"c":2593,"p":23.7},{"m":["Rillaboom","Salamence-Mega"],"c":2303,"p":21.1},{"m":["Salamence-Mega","Sneasler"],"c":2161,"p":19.8},{"m":["Gholdengo","Rillaboom"],"c":1986,"p":18.2}],"3":[{"m":["Rillaboom","Salamence-Mega","Sneasler"],"c":1376,"p":12.6},{"m":["Incineroar","Rillaboom","Sneasler"],"c":1189,"p":10.9},{"m":["Gholdengo","Raichu-Mega-Y","Rillaboom"],"c":1061,"p":9.7},{"m":["Kingambit","Rillaboom","Sneasler"],"c":926,"p":8.5},{"m":["Gholdengo","Rillaboom","Salamence-Mega"],"c":894,"p":8.2}],"4":[{"m":["Floette-Eternal-Mega","Incineroar","Rillaboom","Sneasler"],"c":621,"p":5.7},{"m":["Kingambit","Rillaboom","Salamence-Mega","Sneasler"],"c":602,"p":5.5},{"m":["Arcanine-Hisui","Gholdengo","Raichu-Mega-Y","Rillaboom"],"c":578,"p":5.3},{"m":["Gholdengo","Rillaboom","Salamence-Mega","Sneasler"],"c":523,"p":4.8},{"m":["Arcanine-Hisui","Rillaboom","Salamence-Mega","Sneasler"],"c":519,"p":4.7}]},"teams":[{"r":1,"p":"Lloyd Villar","rec":"13-1","ev":"Make It Rain - VGC Tournament","mons":[{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Protect","Acrobatics"]},{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Protect","Tailwind","Draco Meteor"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Protect","Rock Slide","Knock Off","Dragon Dance"]},{"n":"Excadrill","t":["Ground","Steel"],"a":"Sand Rush","i":"Focus Sash","mv":["High Horsepower","Protect","Rock Slide","Iron Head"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Trick","Trick Room","Dazzling Gleam"]},{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Protect","Muddy Water","Hypnosis","Coil"]}]},{"r":2,"p":"Luca","rec":"13-2","ev":"Maddo's Cup #12","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Draco Meteor","Tailwind","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]}]},{"r":3,"p":"DDee","rec":"12-0","ev":"Talon's FIGHT CLUB #101","mons":[{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Flower Veil","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Calm Mind","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Grassy Seed","mv":["Close Combat","Dire Claw","Rock Slide","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Flare Blitz","Throat Chop","Fake Out","Parting Shot"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Wood Hammer","Grassy Glide","High Horsepower","Fake Out"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Encore","Protect"]}]},{"r":4,"p":"Mahir X","rec":"10-1","ev":"Coupe Critique Champions #4","mons":[{"n":"Swampert-Mega","t":["Water","Ground"],"a":"Torrent","i":"Swampertite","mv":["Wave Crash","Earthquake","Ice Punch","Protect"]},{"n":"Pelipper","t":["Water","Flying"],"a":"Drizzle","i":"Sitrus Berry","mv":["Weather Ball","Hurricane","Tailwind","Wide Guard"]},{"n":"Archaludon","t":["Steel","Dragon"],"a":"Stamina","i":"Leftovers","mv":["Electro Shot","Dragon Pulse","Flash Cannon","Protect"]},{"n":"Grimmsnarl","t":["Dark","Fairy"],"a":"Prankster","i":"Light Clay","mv":["Light Screen","Reflect","Parting Shot","Spirit Break"]},{"n":"Charizard-Mega-Y","t":["Fire","Flying"],"a":"Blaze","i":"Charizardite Y","mv":["Weather Ball","Heat Wave","Hurricane","Protect"]},{"n":"Venusaur","t":["Grass","Poison"],"a":"Chlorophyll","i":"Focus Sash","mv":["Leaf Storm","Sleep Powder","Sludge Bomb","Protect"]}]},{"r":5,"p":"ZayGM","rec":"10-0","ev":"Final Weekly Qualifier","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Fake Out","Dire Claw","Close Combat","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Rock Slide","Knock Off","Fire Punch","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Protect","Nasty Plot"]},{"n":"Excadrill","t":["Ground","Steel"],"a":"Sand Rush","i":"Focus Sash","mv":["High Horsepower","Rock Slide","Iron Head","Protect"]}]},{"r":6,"p":"Lightoz","rec":"12-0","ev":"ValkrixVGC Pokemon Champions League #03","mons":[{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Throat Chop","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Focus Sash","mv":["Expanding Force","Helping Hand","Trick Room","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Basculegion","t":["Water","Ghost"],"a":"Adaptability","i":"Life Orb","mv":["Wave Crash","Last Respects","Aqua Jet","Protect"]},{"n":"Dragonite-Mega","t":["Dragon","Flying"],"a":"Multiscale","i":"Dragoninite","mv":["Dragon Pulse","Heat Wave","Tailwind","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Flare Blitz","Throat Chop","Fake Out","Parting Shot"]}]},{"r":7,"p":"Corro","rec":"9-0","ev":"HeroicTitan's VGC Battle Arena","mons":[{"n":"Froslass-Mega","t":["Ice","Ghost"],"a":"Cursed Body","i":"Froslassite","mv":["Blizzard","Shadow Ball","Aurora Veil","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Encore","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Life Orb","mv":["Kowtow Cleave","Sucker Punch","Swords Dance","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Grassy Seed","mv":["Close Combat","Dire Claw","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]}]},{"r":8,"p":"dartsvgc","rec":"11-0","ev":"Tenki's Cart Weekly #119","mons":[{"n":"Indeedee-F","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Rocky Helmet","mv":["Psychic","Trick Room","Helping Hand","Follow Me"]},{"n":"Gengar-Mega","t":["Ghost","Poison"],"a":"Cursed Body","i":"Gengarite","mv":["Shadow Ball","Sludge Bomb","Icy Wind","Protect"]},{"n":"Armarouge","t":["Fire","Psychic"],"a":"Flash Fire","i":"Life Orb","mv":["Armor Cannon","Expanding Force","Trick Room","Protect"]},{"n":"Meowscarada","t":["Grass","Dark"],"a":"Protean","i":"Choice Scarf","mv":["Knock Off","Flower Trick","Triple Axel","U-turn"]},{"n":"Annihilape","t":["Fighting","Ghost"],"a":"Defiant","i":"Focus Sash","mv":["Close Combat","Phantom Force","Rock Slide","Protect"]},{"n":"Gardevoir-Mega","t":["Psychic","Fairy"],"a":"Trace","i":"Gardevoirite","mv":["Hyper Voice","Expanding Force","Thunderbolt","Protect"]}]},{"r":9,"p":"Evan_santos","rec":"11-1","ev":"[BR] Copa Oak Stadium #9","mons":[{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Muddy Water","Coil","Hypnosis","Recover"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Psychic","Dazzling Gleam","Trick"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Chople Berry","mv":["Fake Out","Flare Blitz","Throat Chop","Parting Shot"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Dire Claw","Close Combat","Throat Chop","Rock Tomb"]},{"n":"Staraptor-Mega","t":["Fighting","Flying"],"a":"Intimidate","i":"Staraptite","mv":["Brave Bird","Close Combat","Roost","Protect"]},{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Symbiosis","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Light of Ruin","Protect"]}]},{"r":10,"p":"Vinnamon","rec":"11-0","ev":"TARTAN TAKEDOWN #39","mons":[{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Grassy Seed","mv":["Trick Room","Psychic","Protect","Helping Hand"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Life Orb","mv":["Grassy Glide","Fake Out","Wood Hammer","High Horsepower"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Quick Attack","Hyper Beam","Detect"]},{"n":"Camerupt-Mega","t":["Fire","Ground"],"a":"Solid Rock","i":"Cameruptite","mv":["Earth Power","Heat Wave","Protect","Ancient Power"]},{"n":"Garchomp-Mega-Z","t":["Dragon"],"a":"Rough Skin","i":"Garchompite Z","mv":["Draco Meteor","Earth Power","Flamethrower","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Fake Out","Flare Blitz","Parting Shot","Throat Chop"]}]},{"r":11,"p":"BentoRS","rec":"9-1","ev":"Copa Oak Stadium #11","mons":[{"n":"Delphox-Mega","t":["Fire","Psychic"],"a":"Blaze","i":"Delphoxite","mv":["Heat Wave","Psychic","Nasty Plot","Protect"]},{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Flower Veil","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Calm Mind","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Fake Out","Flare Blitz","Throat Chop","Parting Shot"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Life Orb","mv":["Kowtow Cleave","Sucker Punch","Swords Dance","Protect"]},{"n":"Sinistcha","t":["Grass","Ghost"],"a":"Hospitality","i":"Colbur Berry","mv":["Matcha Gotcha","Rage Powder","Trick Room","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Poison Touch","i":"Focus Sash","mv":["Fake Out","Close Combat","Poison Jab","Quick Guard"]}]},{"r":12,"p":"nanamixd","rec":"10-1","ev":"VGC Reg M-C Ingame Tour #7","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Chople Berry","mv":["Kowtow Cleave","Sucker Punch","Low Kick","Iron Head"]},{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Sitrus Berry","mv":["Psychic","Thunderbolt","Trick Room","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Wood Hammer","Grassy Glide","High Horsepower","Fake Out"]}]},{"r":13,"p":"CloudDino","rec":"8-1","ev":"VGC Reg M-C Ingame Tour #8","mons":[{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Dragapult","t":["Dragon","Ghost"],"a":"Clear Body","i":"Colbur Berry","mv":["Draco Meteor","Shadow Ball","Will-O-Wisp","Psychic Fangs"]},{"n":"Glimmora-Mega","t":["Rock","Poison"],"a":"Toxic Debris","i":"Glimmoranite","mv":["Sludge Bomb","Power Gem","Earth Power","Spiky Shield"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Focus Sash","mv":["Kowtow Cleave","Sucker Punch","Low Kick","Protect"]},{"n":"Volcarona","t":["Bug","Fire"],"a":"Flame Body","i":"Rocky Helmet","mv":["Overheat","Protect","Rage Powder","Tailwind"]},{"n":"Basculegion","t":["Water","Ghost"],"a":"Adaptability","i":"Life Orb","mv":["Aqua Jet","Wave Crash","Last Respects","Protect"]}]},{"r":14,"p":"Evan Scott","rec":"6-0","ev":"Thavorian's Tubby tour","mons":[{"n":"Mudsdale","t":["Ground"],"a":"Stamina","i":"Leftovers","mv":["Stomping Tantrum","Body Press","Fissure","Protect"]},{"n":"Gengar-Mega","t":["Ghost","Poison"],"a":"Cursed Body","i":"Gengarite","mv":["Shadow Ball","Sludge Bomb","Icy Wind","Protect"]},{"n":"Dragonite","t":["Dragon","Flying"],"a":"Multiscale","i":"Life Orb","mv":["Dragon Claw","Low Kick","Extreme Speed","Tailwind"]},{"n":"Clefable-Mega","t":["Fairy","Flying"],"a":"Unaware","i":"Clefablite","mv":["Moonblast","Flamethrower","Follow Me","Protect"]},{"n":"Pangoro","t":["Fighting","Dark"],"a":"Scrappy","i":"Focus Sash","mv":["Close Combat","Darkest Lariat","Beat Up","Detect"]},{"n":"Empoleon","t":["Water","Steel"],"a":"Competitive","i":"Sitrus Berry","mv":["Hydro Pump","Flash Cannon","Yawn","Protect"]}]},{"r":15,"p":"JuanPabla","rec":"9-1","ev":"Champions League VGC September","mons":[{"n":"Staraptor-Mega","t":["Fighting","Flying"],"a":"Intimidate","i":"Staraptite","mv":["Close Combat","Brave Bird","Tailwind","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Shadow Ball","Make It Rain","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Grassy Glide","Wood Hammer","High Horsepower","Fake Out"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]}]},{"r":16,"p":"LelloCartello","rec":"10-1","ev":"Tenki's Cart Weekly #117","mons":[{"n":"Metagross-Mega","t":["Steel","Psychic"],"a":"Clear Body","i":"Metagrossite","mv":["Iron Head","Psychic Fangs","Body Press","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Imprison","Trick","Trick Room"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Rock Slide","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Rock Slide","Protect"]},{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Dragon Pulse","Heat Wave","Protect"]},{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Scald","Icy Wind","Recover","Protect"]}]},{"r":17,"p":"Sela133VII","rec":"10-2","ev":"Alpensee Tour (Reg M-C) #76","mons":[{"n":"Charizard-Mega-Y","t":["Fire","Flying"],"a":"Blaze","i":"Charizardite Y","mv":["Heat Wave","Weather Ball","Solar Beam","Protect"]},{"n":"Aerodactyl-Mega","t":["Rock","Flying"],"a":"Unnerve","i":"Aerodactylite","mv":["Rock Slide","Dual Wingbeat","Tailwind","Wide Guard"]},{"n":"Garchomp","t":["Dragon","Ground"],"a":"Rough Skin","i":"Life Orb","mv":["Earthquake","Stomping Tantrum","Dragon Claw","Protect"]},{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Sitrus Berry","mv":["Psychic","Thunderbolt","Roar","Trick Room"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Protect"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Focus Sash","mv":["Kowtow Cleave","Sucker Punch","Iron Head","Low Kick"]}]},{"r":18,"p":"Nbryu","rec":"9-0","ev":"[Reg M-C Bo3] THURSDAY NIGHT THROWDOWN #3","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Double-Edge","Tailwind","Protect"]},{"n":"Froslass-Mega","t":["Ice","Ghost"],"a":"Cursed Body","i":"Froslassite","mv":["Blizzard","Aurora Veil","Shadow Ball","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Life Orb","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Fake Out","Close Combat","Dire Claw","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Grassy Seed","mv":["Nasty Plot","Shadow Ball","Make It Rain","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Head Smash","Flare Blitz","Extreme Speed","Protect"]}]},{"r":19,"p":"Evan M","rec":"7-0","ev":"London Corviknights VGC Weekly Tour 14","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Protect","Head Smash","Extreme Speed"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Sitrus Berry","mv":["Wood Hammer","High Horsepower","Grassy Glide","Fake Out"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Close Combat","Rock Tomb","Dire Claw","Protect"]}]},{"r":20,"p":"ItaloMassuco","rec":"8-1","ev":"Intimidators Champions Challenge #47","mons":[{"n":"Dragapult","t":["Dragon","Ghost"],"a":"Clear Body","i":"Life Orb","mv":["Dragon Darts","Phantom Force","U-turn","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Colbur Berry","mv":["Psychic","Follow Me","Trick Room","Helping Hand"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Rock Slide","Knock Off","Low Kick","Protect"]},{"n":"Meganium-Mega","t":["Grass","Fairy"],"a":"Leaf Guard","i":"Meganiumite","mv":["Solar Beam","Dazzling Gleam","Weather Ball","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Close Combat","Dire Claw","Coaching","Protect"]},{"n":"Armarouge","t":["Fire","Psychic"],"a":"Flash Fire","i":"Psychic Seed","mv":["Armor Cannon","Expanding Force","Trick Room","Protect"]}]}]};
   const TYPE_EN_PT = { Normal:"Normal", Fire:"Fogo", Water:"Água", Electric:"Elétrico", Grass:"Grama", Ice:"Gelo", Fighting:"Lutador", Poison:"Venenoso", Ground:"Terra", Flying:"Voador", Psychic:"Psíquico", Bug:"Inseto", Rock:"Pedra", Ghost:"Fantasma", Dragon:"Dragão", Dark:"Sombrio", Steel:"Aço", Fairy:"Fada" };
+  function currentMeta(){ return state.metaLive || META; }
+  function slugSprite(name){ return String(name||"").toLowerCase().replace(/♀/g,"_f").replace(/♂/g,"_m").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
+  function metaSprite(name){
+    const M=currentMeta();
+    const u=(M.usage||[]).find(x=>mkey(x.n)===mkey(name));
+    return (u&&u.img) || `https://cdn.pikalytics.com/images/championssprites/${slugSprite(name)}.png`;
+  }
   function metaTypes(arr){ return (arr || []).map(t => badge(TYPE_EN_PT[t] || t)).join(""); }
   function mkey(name){ return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean).sort().join(" "); }
   function metaSetsFor(name){
-    const k = mkey(name); if(!k) return [];
+    const M=currentMeta(), k = mkey(name); if(!k) return [];
     const out = [];
-    META.teams.forEach(t => t.mons.forEach(m => { if(mkey(m.n) === k) out.push(m); }));
-    if(!out.length){
-      const toks = k.split(" ");
-      META.teams.forEach(t => t.mons.forEach(m => { const mt = mkey(m.n).split(" "); if(toks.every(x => mt.indexOf(x) >= 0)) out.push(m); }));
-    }
+    (M.teams||[]).forEach(t => (t.mons||[]).forEach(m => { if(mkey(m.n) === k) out.push(m); }));
+    if(!out.length){ const toks = k.split(" "); (M.teams||[]).forEach(t => (t.mons||[]).forEach(m => { const mt = mkey(m.n).split(" "); if(toks.every(x => mt.indexOf(x) >= 0)) out.push(m); })); }
     return out;
   }
   function renderSetSuggestions(mon){
@@ -589,29 +616,96 @@ window.SEED = {
       <p class="muted" style="font-size:.72rem;margin:8px 0 0 0">"Usar" preenche habilidade, item e moves. Depois é só Salvar.</p></details>`;
   }
   function metaMonCard(m){
-    return `<div class="mt-mon"><div class="mt-mh"><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span></div><div class="muted mt-ai">${esc(m.a)} · ${esc(m.i)}</div><div class="mt-mv">${m.mv.map(x => `<span>${esc(x)}</span>`).join("")}</div></div>`;
+    return `<div class="mt-mon"><div class="mt-mh"><img class="mt-poke-img" src="${esc(metaSprite(m.n))}" alt="${esc(m.n)}" loading="lazy"><div><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span><div class="muted mt-ai">${esc(m.a||"—")} · ${esc(m.i||"—")}</div></div></div><div class="mt-mv">${(m.mv||[]).map(x => `<span>${esc(x)}</span>`).join("")}</div></div>`;
   }
+  function parsePikalyticsHTML(text){
+    const root = new DOMParser().parseFromString(text,"text/html"), old=currentMeta();
+    const typeMap={};
+    root.querySelectorAll(".team-pokemon-card").forEach(card=>{
+      const n=card.querySelector(".team-pokemon-name")?.textContent.trim(); if(!n) return;
+      typeMap[mkey(n)]=[...card.querySelectorAll(".team-pokemon-types .type")].map(x=>x.textContent.trim());
+    });
+    const usage=[...root.querySelectorAll(".tournament-top20-card")].map((card,i)=>{
+      const n=card.querySelector(".tournament-top20-name")?.textContent.trim();
+      const u=parseFloat((card.querySelector(".tournament-top20-usage")?.textContent||"").replace(",","."));
+      const img=card.querySelector("img")?.src;
+      const prior=(old.usage||[]).find(x=>mkey(x.n)===mkey(n));
+      return {n,u,w:prior?.w||0,t:typeMap[mkey(n)]||prior?.t||[],img};
+    }).filter(x=>x.n && Number.isFinite(x.u));
+    if(!usage.length) throw new Error("não encontrei a tabela de uso");
+    const cores={"2":[],"3":[],"4":[]};
+    root.querySelectorAll(".pokedex-format-core-entry").forEach(e=>{
+      const mons=[...e.querySelectorAll(".pokedex-format-core-pokemon-link")].map(x=>x.textContent.trim());
+      const spans=[...e.querySelectorAll(".pokedex-format-core-meta span")].map(x=>x.textContent.trim());
+      const c=parseInt((spans[0]||"").replace(/\\D/g,""))||0, pct=parseFloat((spans[1]||"").replace(",","."))||0;
+      if(cores[String(mons.length)]) cores[String(mons.length)].push({m:mons,c,p:pct});
+    });
+    const teams=[...root.querySelectorAll(".pokedex-format-team-entry")].slice(0,20).map((entry,i)=>{
+      const p=entry.querySelector(".pokedex-format-team-author")?.textContent.trim()||"—";
+      const rec=entry.querySelector(".pokedex-format-team-record")?.textContent.trim()||"—";
+      const ev=entry.querySelector(".pokedex-format-team-meta")?.childNodes[0]?.textContent.trim()||"Top team";
+      const mons=[...entry.querySelectorAll(".team-pokemon-card")].map(card=>({
+        n:card.querySelector(".team-pokemon-name")?.textContent.trim()||"",
+        t:[...card.querySelectorAll(".team-pokemon-types .type")].map(x=>x.textContent.trim()),
+        a:card.querySelector(".team-pokemon-prop-row .team-prop-val-text")?.textContent.trim()||"",
+        i:card.querySelectorAll(".team-pokemon-prop-row .team-prop-val-text")[1]?.textContent.trim()||"",
+        mv:[...card.querySelectorAll(".team-move-name")].map(x=>x.textContent.trim()),
+        img:card.querySelector("img")?.src
+      })).filter(x=>x.n);
+      return {r:i+1,p,rec,ev,mons};
+    }).filter(x=>x.mons.length);
+    return {format:root.querySelector("h1")?.textContent.trim()||old.format,source:"Pikalytics",sourceUrl:META.sourceUrl,collected:new Date().toLocaleDateString("pt-BR"),usage,cores:{"2":cores["2"].slice(0,5),"3":cores["3"].slice(0,5),"4":cores["4"].slice(0,5)},teams:teams.length?teams:old.teams};
+  }
+  async function refreshMeta(){
+    if(state.metaBusy) return;
+    state.metaBusy=true; state.metaMsg="Atualizando do Pikalytics…"; render();
+    try{
+      const r=await fetch(META.sourceUrl,{cache:"no-store"}); if(!r.ok) throw new Error("Pikalytics respondeu HTTP "+r.status);
+      state.metaLive=parsePikalyticsHTML(await r.text()); state.metaMsg="Atualizado agora · "+state.metaLive.collected;
+      try{ localStorage.setItem("hbp-pikalytics",JSON.stringify(state.metaLive)); }catch(e){}
+    }catch(e){
+      state.metaMsg="Não consegui atualizar agora; exibindo o último snapshot. "+(e.message||"");
+    }finally{ state.metaBusy=false; render(); }
+  }
+  function loadMetaCache(){ try{ const x=JSON.parse(localStorage.getItem("hbp-pikalytics")||"null"); if(x&&x.usage) state.metaLive=x; }catch(e){} }
   function renderMeta(){
-    const q = (state.metaQ || "").trim().toLowerCase();
-    const maxU = Math.max.apply(null, META.usage.map(u => u.u));
-    let html = `<div class="card"><h2>Mais usados</h2><p class="muted" style="margin:0 0 6px 0">${esc(META.format)} · uso na ladder do Showdown</p>`;
-    META.usage.forEach((u, i) => {
-      html += `<div class="usagerow"><span class="urank">${i + 1}</span><span class="uname">${esc(u.n)} <span class="utypes">${metaTypes(u.t)}</span></span><span class="uval">${u.u.toFixed(2)}%</span><span class="uwr muted">${u.w.toFixed(1)}% vit.</span><span class="ubar"><i style="width:${(u.u / maxU * 100).toFixed(1)}%"></i></span></div>`;
+    const M=currentMeta(), q = (state.metaQ || "").trim().toLowerCase();
+    const maxU = Math.max.apply(null, M.usage.map(u => u.u));
+    let html = `<div class="card"><div class="meta-sync"><div><h2 style="margin-bottom:3px">Meta VGC</h2><p class="muted" style="margin:0">${esc(M.format)} · dados do Pikalytics</p></div><div class="meta-sync-actions"><span class="muted" style="font-size:.76rem"><i class="sync-dot ${state.metaBusy?'busy':''}"></i>${esc(state.metaMsg || ('Coletado em '+M.collected))}</span><button class="primary" onclick="HBP.refreshMeta()" ${state.metaBusy?'disabled':''}>${state.metaBusy?'Atualizando…':'↻ Atualizar Pikalytics'}</button></div></div>`;
+    M.usage.forEach((u, i) => {
+      html += `<div class="usagerow"><span class="urank">${i + 1}</span><span class="uname meta-poke"><img src="${esc(metaSprite(u.n))}" alt="${esc(u.n)}" loading="lazy"><span><b>${esc(u.n)}</b> <span class="utypes">${metaTypes(u.t)}</span></span></span><span class="uval">${u.u.toFixed(2)}%</span><span class="uwr muted">${u.w ? u.w.toFixed(1)+'% vit.' : '—'}</span><span class="ubar"><i style="width:${(u.u / maxU * 100).toFixed(1)}%"></i></span></div>`;
     });
     html += `</div><div class="card"><h2>Cores mais comuns</h2><p class="muted" style="margin:0 0 6px 0">Pokémon que aparecem juntos nos mesmos times</p>`;
     [["2", "Duplas"], ["3", "Trios"], ["4", "Quartetos"]].forEach(g => {
       html += `<div class="sec2">${g[1]}</div>`;
-      META.cores[g[0]].forEach(c => { html += `<div class="corerow"><span>${c.m.map(esc).join(" + ")}</span><span class="muted">${c.c} times · ${c.p}%</span></div>`; });
+      (M.cores[g[0]]||[]).forEach(c => { html += `<div class="corerow"><span>${c.m.map(x=>`<span class="meta-poke"><img src="${esc(metaSprite(x))}" style="width:26px;height:26px;flex-basis:26px" alt="">${esc(x)}</span>`).join(" + ")}</span><span class="muted">${c.c} times · ${c.p}%</span></div>`; });
     });
-    const teams = META.teams.filter(t => !q || t.mons.some(m => m.n.toLowerCase().indexOf(q) >= 0));
-    html += `</div><div class="card"><h2>Top teams recentes</h2>
-      <div class="metafilter"><input id="meta-q" placeholder="Filtrar por Pokémon (Enter)" value="${esc(state.metaQ || "")}" onkeydown="if(event.key==='Enter')HBP.metaFilter(this.value)">${q ? `<button class="ghost" onclick="HBP.metaFilter('')">Limpar</button>` : ""}</div>`;
+    const teams = (M.teams||[]).filter(t => !q || t.mons.some(m => m.n.toLowerCase().indexOf(q) >= 0));
+    html += `</div><div class="card"><h2>Top teams recentes</h2><div class="metafilter"><input id="meta-q" placeholder="Filtrar por Pokémon (Enter)" value="${esc(state.metaQ || "")}" onkeydown="if(event.key==='Enter')HBP.metaFilter(this.value)">${q ? `<button class="ghost" onclick="HBP.metaFilter('')">Limpar</button>` : ""}</div>`;
     if(!teams.length) html += `<p class="pending">Nenhum time com esse Pokémon.</p>`;
-    teams.forEach(t => {
-      html += `<details class="metateam"><summary><span class="mt-rank">#${t.r}</span> <strong>${esc(t.p)}</strong> <span class="tag">${esc(t.rec)}</span><div class="muted mt-ev">${esc(t.ev)}</div><div class="mt-names">${t.mons.map(m => esc(m.n)).join(" · ")}</div></summary><div class="mt-grid">${t.mons.map(metaMonCard).join("")}</div></details>`;
-    });
-    html += `</div><div class="card"><p class="muted" style="margin:0;font-size:.8rem">Fonte dos dados: <a href="${META.sourceUrl}" target="_blank" rel="noopener" style="color:inherit">Pikalytics</a> (formato ${esc(META.format)}). Coletados em ${META.collected}; são uma foto desse dia e não atualizam sozinhos. Pokémon e nomes relacionados são marcas da Nintendo.</p></div>`;
-    return html;
+    teams.forEach(t => { html += `<details class="metateam"><summary><span class="mt-rank">#${t.r}</span> <strong>${esc(t.p)}</strong> <span class="tag">${esc(t.rec)}</span><div class="muted mt-ev">${esc(t.ev)}</div><div class="mt-names">${t.mons.map(m => esc(m.n)).join(" · ")}</div></summary><div class="mt-grid">${t.mons.map(metaMonCard).join("")}</div></details>`; });
+    return html + `</div><div class="card"><p class="muted" style="margin:0;font-size:.8rem">Fonte: <a href="${META.sourceUrl}" target="_blank" rel="noopener" style="color:inherit">Pikalytics</a>. Última coleta: ${esc(M.collected)}. O botão acima atualiza uso, imagens, cores e top teams. Pokémon e nomes relacionados são marcas da Nintendo.</p></div>`;
+  }
+
+  function calcNames(){ const names=[]; (currentMeta().usage||[]).forEach(x=>names.push(x.n)); (currentMeta().teams||[]).forEach(t=>(t.mons||[]).forEach(m=>names.push(m.n))); return [...new Set(names)].sort(); }
+  function calcOpts(list, val){ return list.map(x=>`<option value="${esc(x)}" ${x===val?'selected':''}>${esc(x)}</option>`).join(""); }
+  function renderCalc(){
+    const c=state.calc, names=calcNames(), moves=[...new Set(["Flare Blitz","Close Combat","Earthquake","Rock Slide","Heat Wave","Moonblast","Shadow Ball","Make It Rain","Fake Out","Grassy Glide","Draco Meteor","Protect",...((currentMeta().teams||[]).flatMap(t=>t.mons.flatMap(m=>m.mv||[])))])].sort();
+    return `<div class="card"><div class="meta-sync"><div><h2 style="margin-bottom:3px">Calculadora de dano</h2><p class="muted" style="margin:0">Gen 9 · modo Doubles · motor do Pokémon Showdown</p></div><a class="ghost" href="https://www.pikalytics.com/damage-calculator" target="_blank" rel="noopener">Abrir Pikalytics ↗</a></div><div class="calcgrid"><div class="calcside"><h3>Atacante</h3><label>Pokémon<select id="calc-att">${calcOpts(names,c.attacker)}</select></label><div class="calcrow"><div><label>Nível<input id="calc-level" type="number" min="1" max="100" value="${c.level}"></label></div><div><label>Natureza<input id="calc-nature" value="${esc(c.nature)}"></label></div></div><div class="calcrow"><div><label>EV Atk<input id="calc-a-atk" type="number" min="0" max="252" value="${c.aAtk}"></label></div><div><label>EV SpA<input id="calc-a-spa" type="number" min="0" max="252" value="${c.aSpA}"></label></div></div><div class="calcrow"><div><label>Item<input id="calc-item" value="${esc(c.item)}" placeholder="Life Orb"></label></div><div><label>Habilidade<input id="calc-ability" value="${esc(c.ability)}" placeholder="Intimidate"></label></div></div><label>Golpe<select id="calc-move">${calcOpts(moves,c.move)}</select></label></div><div class="calcside"><h3>Defensor</h3><label>Pokémon<select id="calc-def">${calcOpts(names,c.defender)}</select></label><div class="calcrow"><div><label>EV HP<input id="calc-d-hp" type="number" min="0" max="252" value="${c.dHp}"></label></div><div><label>EV Def<input id="calc-d-def" type="number" min="0" max="252" value="${c.dDef}"></label></div></div><label>EV SpD<input id="calc-d-spd" type="number" min="0" max="252" value="${c.dSpD}"></label><div class="calcrow"><div><label>Clima<select id="calc-weather"><option value="">Normal</option><option value="Sun" ${c.weather==='Sun'?'selected':''}>Sol</option><option value="Rain" ${c.weather==='Rain'?'selected':''}>Chuva</option><option value="Sand" ${c.weather==='Sand'?'selected':''}>Areia</option><option value="Snow" ${c.weather==='Snow'?'selected':''}>Neve</option></select></label></div><div><label>Terreno<select id="calc-terrain"><option value="">Nenhum</option><option value="Electric" ${c.terrain==='Electric'?'selected':''}>Elétrico</option><option value="Grassy" ${c.terrain==='Grassy'?'selected':''}>Grassy</option><option value="Misty" ${c.terrain==='Misty'?'selected':''}>Misty</option><option value="Psychic" ${c.terrain==='Psychic'?'selected':''}>Psíquico</option></select></label></div></div></div></div><div class="meta-sync-actions" style="margin-top:14px"><button class="primary" onclick="HBP.calculateDamage()">Calcular dano</button><span class="muted calcnote">Os campos de EV são opcionais. O resultado considera rolagem mínima/máxima, STAB, efetividade e campo de Doubles.</span></div><div id="calc-result" class="calcresult"><span class="muted">Escolha os Pokémon e clique em <b>Calcular dano</b>.</span></div></div>`;
+  }
+  function calculateDamage(){
+    const g=id=>document.getElementById(id), c=state.calc;
+    Object.assign(c,{attacker:g('calc-att').value,defender:g('calc-def').value,move:g('calc-move').value,level:Number(g('calc-level').value)||50,nature:g('calc-nature').value||'Adamant',aAtk:Number(g('calc-a-atk').value)||0,aSpA:Number(g('calc-a-spa').value)||0,dHp:Number(g('calc-d-hp').value)||0,dDef:Number(g('calc-d-def').value)||0,dSpD:Number(g('calc-d-spd').value)||0,item:g('calc-item').value,ability:g('calc-ability').value,weather:g('calc-weather').value,terrain:g('calc-terrain').value});
+    const out=document.getElementById('calc-result');
+    try{
+      if(!window.calc || !calc.calculate) throw new Error('motor de cálculo ainda não carregou; verifique a conexão e tente novamente');
+      const gen=calc.Generations.get(9), evA={atk:c.aAtk,spa:c.aSpA}, evD={hp:c.dHp,def:c.dDef,spd:c.dSpD};
+      const a=new calc.Pokemon(gen,c.attacker,{level:c.level,nature:c.nature||'Adamant',evs:evA,item:c.item||undefined,ability:c.ability||undefined});
+      const d=new calc.Pokemon(gen,c.defender,{level:c.level,evs:evD});
+      const move=new calc.Move(gen,c.move); const field=new calc.Field({gameType:'Doubles',weather:c.weather||undefined,terrain:c.terrain||undefined});
+      const r=calc.calculate(gen,a,d,move,field), range=r.range(), maxhp=d.stats.hp, minPct=(range[0]/maxhp*100), maxPct=(range[1]/maxhp*100);
+      out.innerHTML=`<strong>${range[0]}–${range[1]} HP</strong> <span class="muted">(${minPct.toFixed(1)}%–${maxPct.toFixed(1)}% do HP</span>)<br><span class="calcnote">${esc(r.desc ? r.desc() : c.attacker+' com '+c.move+' contra '+c.defender)}<br>Efetividade e modificadores foram calculados pelo motor oficial open source.</span>`;
+    }catch(e){ out.innerHTML=`<b>Não foi possível calcular</b><br><span class="calcnote">${esc(e.message||e)}. Confira o nome do golpe, habilidade ou item e tente de novo.</span>`; }
   }
 
   const NAV_ICONS = {
@@ -620,11 +714,12 @@ window.SEED = {
     super: '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/><path d="M5 21h14"/></svg>',
     times: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg>',
     meta:  '<svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/></svg>',
+    calc:  '<svg viewBox="0 0 24 24"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h2M14 11h2M8 15h2M14 15h2M8 19h2M14 19h2"/></svg>',
     contas:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.2.7 3.5 2.6 3.5 5.7"/></svg>',
     admins:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>'
   };
   function renderRail(enter){
-    const items = [["liga","Liga HBP"],["copa","Copa HBP"],["super","Super Copa HBP"],["times","Times"],["meta","Meta VGC"],["contas","Contas"]];
+    const items = [["liga","Liga HBP"],["copa","Copa HBP"],["super","Super Copa HBP"],["times","Times"],["meta","Meta VGC"],["calc","Calculadora"],["contas","Contas"]];
     if(state.admin) items.push(["admins","Admins"]);
     return `<nav class="rail ${enter ? "enter" : ""}" aria-label="Setores">${items.map(it => `<a class="railbtn ${state.tab===it[0]?"active":""}" role="button" tabindex="0" title="${it[1]}" aria-label="${it[1]}" data-tip="${it[1]}" onclick="HBP.switchTab('${it[0]}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">${NAV_ICONS[it[0]]}</a>`).join("")}</nav>`;
   }
@@ -1209,6 +1304,7 @@ window.SEED = {
     else if(tab === "copa") body += renderCopa(state.season);
     else if(tab === "times") body += renderTimes(state.season);
     else if(tab === "meta") body += renderMeta();
+    else if(tab === "calc") body += renderCalc();
     else if(tab === "contas") body += renderContas();
     else if(tab === "admins") body += renderAdmins();
     else body += renderSuper(state.season);
@@ -1220,6 +1316,7 @@ window.SEED = {
   }
 
   async function boot(){
+    loadMetaCache();
     render();
     if(!SB_OK()){ state.booting = false; render(); return; }
     try {
@@ -1298,6 +1395,8 @@ window.SEED = {
       render();
     },
     metaFilter(v){ state.metaQ = String(v || "").trim(); render(); },
+    refreshMeta,
+    calculateDamage,
     applySet(i, btn){
       const s = (state._sets || [])[i]; if(!s) return;
       const put = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
