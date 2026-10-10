@@ -334,6 +334,47 @@ window.SEED = {
 
   function seasonNums(){ return Object.keys(D.seasons).map(Number).sort((a,b)=>a-b); }
   function season(n){ return D.seasons[String(n)]; }
+  // Times da Copa e da Super Copa ficam na mesma tabela "teams", usando números de semana especiais.
+  const CUP_W = { copa: 1000, super: 2000 };
+  function stageLabel(w){ return w === CUP_W.copa ? "Copa HBP" : w === CUP_W.super ? "Super Copa HBP" : "Semana " + w; }
+  function teamsBag(n, weekNumber, create){
+    const s = season(n); if(!s) return null;
+    if(weekNumber === CUP_W.copa || weekNumber === CUP_W.super){
+      const k = weekNumber === CUP_W.copa ? "copa" : "super";
+      if(!s.cupTeams){ if(!create) return null; s.cupTeams = { copa: {}, super: {} }; }
+      if(!s.cupTeams[k]){ if(!create) return null; s.cupTeams[k] = {}; }
+      return s.cupTeams[k];
+    }
+    const w = s.liga.weeks.find(x => x.number === weekNumber); if(!w) return null;
+    if(!w.teams){ if(!create) return null; w.teams = {}; }
+    return w.teams;
+  }
+  function renderStageTeams(n, weekNumber, players){
+    const s = season(n);
+    const seen = {}; players = players.filter(p => p && !seen[p] && (seen[p] = true));
+    let html = `<div class="card"><h2>Times da ${weekNumber === CUP_W.copa ? "Copa" : "Super Copa"}</h2>`;
+    const bag = teamsBag(n, weekNumber) || {};
+    players.forEach(p => {
+      const team = bag[p] || [];
+      html += `<div class="teambox"><div class="teamlabel">${p}</div>`;
+      if(team.length){
+        html += `<div class="teamgrid">`;
+        team.forEach((mon, idx) => {
+          html += `<div class="mon" onclick="HBP.openMon(${n},${weekNumber},'${p}',${idx})"><img src="${mon.img}" alt="${esc(mon.name)}"><span>${esc(mon.name)}</span>`;
+          if(canEdit(p)) html += `<button class="monremove" onclick="event.stopPropagation();HBP.removeMon(${n},${weekNumber},'${p}',${idx})">✕</button>`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+      } else {
+        html += `<p class="pending">Time ainda não informado.</p>`;
+      }
+      if(canEdit(p)){
+        html += `<div class="teamedit" style="flex-direction:column;align-items:flex-start"><label style="font-size:.78rem;color:var(--muted)">Adicionar Pokémon (imagem)</label><input type="file" accept="image/*" id="file-${n}-${weekNumber}-${p}" onchange="HBP.addMon(${n},${weekNumber},'${p}')"><label style="font-size:.78rem;color:var(--muted)"><input type="checkbox" id="bg-${n}-${weekNumber}-${p}" checked style="width:auto;margin-right:6px">Remover fundo branco automaticamente</label></div>`;
+      }
+      html += `</div>`;
+    });
+    return html + `</div>`;
+  }
   function seasonName(n){ const s = season(n); return (s && s.name) || `Temporada ${n}`; }
   function sortedStandings(n){
     const s = season(n);
@@ -556,6 +597,7 @@ window.SEED = {
       }
     }
     html += `</div>`;
+    html += renderStageTeams(n, CUP_W.copa, [c.bye, c.qfA, c.qfB]);
     return html;
   }
 
@@ -581,6 +623,7 @@ window.SEED = {
       html += `<div class="adminbox"><button class="primary" onclick="HBP.newSeason()">Iniciar próxima temporada</button></div>`;
     }
     html += `</div>`;
+    html += renderStageTeams(n, CUP_W.super, [s.ligaChampion, s.copaChampion]);
     return html;
   }
 
@@ -593,8 +636,8 @@ window.SEED = {
   const NATURES = ["Hardy","Lonely","Brave","Adamant","Naughty","Bold","Docile","Relaxed","Impish","Lax","Timid","Hasty","Serious","Jolly","Naive","Modest","Mild","Quiet","Bashful","Rash","Calm","Gentle","Sassy","Careful","Quirky"];
   function esc(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function getMon(v){
-    const s = season(v.n); const w = s && s.liga.weeks.find(x => x.number === v.w);
-    return w && w.teams && w.teams[v.p] && w.teams[v.p][v.i];
+    const b = teamsBag(v.n, v.w);
+    return b && b[v.p] && b[v.p][v.i];
   }
   function renderMonModal(){
     const v = state.monView; if(!v) return "";
@@ -602,7 +645,7 @@ window.SEED = {
     const ev = mon.evs || {}, iv = mon.ivs || {}, mv = mon.moves || [];
     const evTotal = STAT_KEYS.reduce((a,k) => a + (Number(ev[k[0]])||0), 0);
     let h = `<div class="overlay" onclick="if(event.target===this)HBP.closeMon()"><div class="modalbox monbox">`;
-    h += `<div class="monhead"><img src="${mon.img}" alt=""><div><h3>${esc(mon.name)}</h3><div class="muted">Time de ${v.p} · Semana ${v.w}</div></div></div>`;
+    h += `<div class="monhead"><img src="${mon.img}" alt=""><div><h3>${esc(mon.name)}</h3><div class="muted">Time de ${v.p} · ${stageLabel(v.w)}</div></div></div>`;
     if(canEdit(v.p)){
       h += `<div class="row2"><div><label>Nome</label><input id="mm-name" value="${esc(mon.name)}"></div><div><label>Nível</label><input id="mm-level" type="number" value="${esc(mon.level||50)}"></div></div>`;
       h += `<div class="row2"><div><label>Habilidade</label><input id="mm-ability" value="${esc(mon.ability)}"></div><div><label>Item</label><input id="mm-item" value="${esc(mon.item)}"></div></div>`;
@@ -679,10 +722,15 @@ window.SEED = {
   function canEdit(p){ return (isAdmin() && state.adminOn) || !!(state.profile && state.profile.status === "approved" && state.profile.player_name === p); }
   function pendingCount(){ return state.profiles.filter(p => p.status === "pending").length; }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
-  function stripTeams(data){ const c = clone(data); Object.keys(c.seasons).forEach(k => (c.seasons[k].liga.weeks || []).forEach(w => { delete w.teams; })); return c; }
+  function stripTeams(data){ const c = clone(data); Object.keys(c.seasons).forEach(k => (c.seasons[k].liga.weeks || []).forEach(w => { delete w.teams; }), delete c.seasons[k].cupTeams); return c; }
   function mergeTeams(data, rows){
     rows.forEach(r => {
       const s = data.seasons[String(r.season)]; if(!s) return;
+      if(r.week === CUP_W.copa || r.week === CUP_W.super){
+        if(!s.cupTeams) s.cupTeams = { copa: {}, super: {} };
+        s.cupTeams[r.week === CUP_W.copa ? "copa" : "super"][r.player] = r.mons || [];
+        return;
+      }
       const w = s.liga.weeks.find(x => x.number === r.week); if(!w) return;
       if(!w.teams) w.teams = {};
       w.teams[r.player] = r.mons || [];
@@ -771,8 +819,8 @@ window.SEED = {
   }
   async function persistTeam(n, weekNumber, player){
     render();
-    const w = season(n).liga.weeks.find(x => x.number === weekNumber);
-    const mons = (w && w.teams && w.teams[player]) || [];
+    const bag = teamsBag(n, weekNumber);
+    const mons = (bag && bag[player]) || [];
     const r = await sb.from("teams").upsert({ season: n, week: weekNumber, player, mons }, { onConflict: "season,week,player" });
     if(r.error){ state.notice = "Não consegui salvar o time: " + friendlyError(r.error); render(); }
   }
@@ -971,13 +1019,11 @@ window.SEED = {
           const path = `${state.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
           url = await uploadImage("pokemon", path, dataUrlToBlob(img));
         } catch(e){ /* se o upload falhar, guarda a imagem dentro do próprio time */ }
-        const s = season(n);
-        const w = s.liga.weeks.find(x => x.number === weekNumber);
-        if(!w) return;
-        if(!w.teams) w.teams = {};
-        if(!w.teams[player]) w.teams[player] = [];
+        const bag = teamsBag(n, weekNumber, true);
+        if(!bag) return;
+        if(!bag[player]) bag[player] = [];
         const defaultName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-        w.teams[player].push({ name: defaultName, img: url, level: 50, evs: {}, ivs: {}, moves: [] });
+        bag[player].push({ name: defaultName, img: url, level: 50, evs: {}, ivs: {}, moves: [] });
         persistTeam(n, weekNumber, player);
       };
       reader.readAsDataURL(file);
@@ -1000,11 +1046,10 @@ window.SEED = {
       persistTeam(v.n, v.w, v.p);
     },
     removeMon(n, weekNumber, player, idx){
-      const s = season(n);
-      const w = s.liga.weeks.find(x => x.number === weekNumber);
-      if(!w || !w.teams || !w.teams[player]) return;
+      const bag = teamsBag(n, weekNumber);
+      if(!bag || !bag[player]) return;
       if(!canEdit(player)) return;
-      w.teams[player].splice(idx, 1);
+      bag[player].splice(idx, 1);
       persistTeam(n, weekNumber, player);
     },
     toggleAdmin(){
@@ -1106,11 +1151,10 @@ window.SEED = {
     dismissNotice(){ state.notice = null; render(); },
     confirmRenameMon(val, ctx){
       if(!val || !val.trim()) return render();
-      const s = season(ctx.n);
-      const w = s.liga.weeks.find(x => x.number === ctx.w);
-      if(!w || !w.teams || !w.teams[ctx.p] || !w.teams[ctx.p][ctx.i]) return render();
-      w.teams[ctx.p][ctx.i].name = val.trim();
-      persist();
+      const bag = teamsBag(ctx.n, ctx.w);
+      if(!bag || !bag[ctx.p] || !bag[ctx.p][ctx.i]) return render();
+      bag[ctx.p][ctx.i].name = val.trim();
+      persistTeam(ctx.n, ctx.w, ctx.p);
     },
     confirmRename(val, n){
       if(!val || !val.trim()) return render();
