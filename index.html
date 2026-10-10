@@ -271,6 +271,57 @@
     .battlecell:hover { transform:translateY(-2px); }
     .teambox:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(20,22,26,.14); }
   }
+
+  /* ===== menu lateral (ícones) ===== */
+  .rail { position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:6; display:flex; flex-direction:column; gap:6px; padding:10px 7px; max-height:calc(100vh - 24px); border-radius:999px; background:var(--surface); background-image:var(--panel-grad); box-shadow:var(--shadow); }
+  .rail.enter { animation:railin .7s cubic-bezier(.2,.8,.2,1) backwards; }
+  @keyframes railin { from { opacity:0; transform:translate(-30px,-50%); } to { opacity:1; transform:translateY(-50%); } }
+  .railbtn { position:relative; width:42px; height:42px; display:grid; place-items:center; border-radius:50%; color:var(--muted); cursor:pointer; outline:none; transition:color .25s, background .25s, transform .25s cubic-bezier(.3,1.6,.5,1), box-shadow .25s; }
+  .railbtn svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .railbtn:hover, .railbtn:focus-visible { color:var(--text); background:rgba(255,255,255,.09); transform:scale(1.1); }
+  .railbtn.active { color:#fff; background:linear-gradient(135deg,var(--red),var(--purple)); box-shadow:0 6px 16px rgba(212,50,42,.4); }
+  .railbtn::after { content:attr(data-tip); position:absolute; left:calc(100% + 14px); top:50%; transform:translateY(-50%) translateX(-6px); opacity:0; pointer-events:none; white-space:nowrap; background:var(--surface); background-image:var(--panel-grad); color:var(--text); padding:7px 14px; border-radius:999px; font-size:.78rem; font-weight:600; letter-spacing:.03em; box-shadow:var(--shadow); transition:opacity .18s, transform .18s; }
+  .railbtn:hover::after, .railbtn:focus-visible::after { opacity:1; transform:translateY(-50%); }
+  body.hasrail { padding-left:76px; }
+  @media (max-width:640px) {
+    .rail { left:6px; padding:8px 5px; gap:4px; }
+    .railbtn { width:38px; height:38px; }
+    .railbtn svg { width:20px; height:20px; }
+    body.hasrail { padding-left:58px; }
+    .railbtn::after { display:none; }
+  }
+
+  /* ===== campos de escolha (selects, tipos, arquivos) ===== */
+  input, select, textarea { color-scheme:dark; }
+  .teambox input, .teambox select, .match input, .hero-card input { color-scheme:light; }
+  input[type=text], input[type=email], input[type=password], input[type=search], input[type=number], input:not([type]), input[list], input[data-list], textarea, select {
+    background-color:var(--surface2); color:var(--text); border:1.5px solid var(--line); border-radius:16px;
+    transition:border-color .2s, box-shadow .25s, background-color .2s;
+  }
+  input[type=text], input[type=email], input[type=password], input[type=search], input:not([type]), input[list], input[data-list], textarea, select { padding:10px 14px; }
+  textarea { border-radius:18px; }
+  input::placeholder, textarea::placeholder { color:var(--muted); opacity:.75; }
+  input:hover, select:hover, textarea:hover { border-color:rgba(142,68,214,.55); }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--purple); box-shadow:0 0 0 3px rgba(142,68,214,.28); }
+  select, input[list], input[data-list] {
+    appearance:none; -webkit-appearance:none; cursor:pointer; border-radius:999px; padding-right:40px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e44d6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 16px center; background-size:12px 8px;
+  }
+  input[list], input[data-list] { cursor:text; }
+  input::-webkit-calendar-picker-indicator { display:none !important; }
+  input[type=checkbox] { accent-color:var(--red); width:auto; }
+  input[type=file] { width:100%; max-width:100%; padding:6px; border-radius:999px; font-size:.82rem; color:var(--muted); cursor:pointer; }
+  input[type=file]::file-selector-button { margin-right:12px; border:0; border-radius:999px; padding:8px 18px; font-family:inherit; font-size:.82rem; font-weight:600; letter-spacing:.02em; color:#fff; background:linear-gradient(135deg,var(--red),var(--purple)); box-shadow:0 4px 12px rgba(212,50,42,.3); cursor:pointer; transition:filter .2s, transform .15s; }
+  input[type=file]::file-selector-button:hover { filter:brightness(1.12); transform:translateY(-1px); }
+  input[type=file]:hover { border-color:rgba(142,68,214,.55); }
+
+  /* menu suspenso personalizado */
+  .dd { position:fixed; z-index:1000; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; display:flex; flex-direction:column; gap:5px; padding:8px; background:var(--surface); background-image:var(--panel-grad); color:var(--text); border-radius:22px 22px 22px 8px; box-shadow:0 20px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08); animation:ddin .2s cubic-bezier(.2,.9,.3,1) both; }
+  @keyframes ddin { from { opacity:0; transform:translateY(-6px) scale(.97); } to { opacity:1; transform:none; } }
+  .ddopt { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:1.5px solid transparent; color:var(--text); border-radius:999px; padding:8px 14px; font-size:.86rem; font-weight:600; cursor:pointer; }
+  .ddopt:hover, .ddopt.hi { background:rgba(255,255,255,.1); }
+  .ddopt.active { background:linear-gradient(135deg,var(--red),var(--purple)); color:#fff; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
   }
@@ -474,13 +525,26 @@ window.SEED = {
     return `<img class="type-badge type-img" src="${src}" title="${name}" alt="${name}">`;
   }
 
+  const NAV_ICONS = {
+    liga:  '<svg viewBox="0 0 24 24"><rect x="3" y="13" width="5" height="8" rx="1"/><rect x="9.5" y="5" width="5" height="16" rx="1"/><rect x="16" y="10" width="5" height="11" rx="1"/></svg>',
+    copa:  '<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5a2 2 0 0 0 0 4h3M16 6h3a2 2 0 0 1 0 4h-3"/><path d="M12 13v4M10 17h4M8 21h8"/></svg>',
+    super: '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/><path d="M5 21h14"/></svg>',
+    times: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg>',
+    contas:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.2.7 3.5 2.6 3.5 5.7"/></svg>',
+    admins:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>'
+  };
+  function renderRail(enter){
+    const items = [["liga","Liga HBP"],["copa","Copa HBP"],["super","Super Copa HBP"],["times","Times"],["contas","Contas"]];
+    if(state.admin) items.push(["admins","Admins"]);
+    return `<nav class="rail ${enter ? "enter" : ""}" aria-label="Setores">${items.map(it => `<a class="railbtn ${state.tab===it[0]?"active":""}" role="button" tabindex="0" title="${it[1]}" aria-label="${it[1]}" data-tip="${it[1]}" onclick="HBP.switchTab('${it[0]}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">${NAV_ICONS[it[0]]}</a>`).join("")}</nav>`;
+  }
   function header(){
     const link = (id, label) => `<a class="navlink ${state.tab===id?'active':''}" onclick="HBP.switchTab('${id}')">${label}</a>`;
     const pend = pendingCount();
     const me = state.profile;
     return `
     <header><div class="topbar">
-      <nav class="pill navpill"><img class="logo" src="${LOGO_URI}" alt="Hospício Battle Pokémon">${link('liga','Liga HBP')}${link('copa','Copa HBP')}${link('super','Super Copa HBP')}${link('times','Times')}${link('contas','Contas')}${state.admin ? link('admins','Admins') : ''}</nav>
+      <nav class="pill navpill"><img class="logo" src="${LOGO_URI}" alt="Hospício Battle Pokémon"></nav>
       <div class="pill userpill">
         <div class="seasonpick">
           <button class="seasonbtn" onclick="HBP.toggleSeasons()">${esc(seasonName(state.season))} <span class="chev">${state.seasonOpen ? "▴" : "▾"}</span></button>
@@ -1031,6 +1095,7 @@ window.SEED = {
 
   function render(){
     const app = document.getElementById("app");
+    document.body.classList.remove("hasrail");
     if(state.booting){ app.innerHTML = renderGate(`<p class="muted" style="text-align:center">Carregando…</p>`); return; }
     if(!SB_OK()){
       app.innerHTML = renderGate(`<h2 class="authtitle">Falta configurar o Supabase</h2><p class="muted">Abra o arquivo <b>index.html</b>, procure por <b>SUPABASE_URL</b> e <b>SUPABASE_KEY</b> e cole a Project URL e a chave pública do seu projeto.</p>`);
@@ -1045,7 +1110,7 @@ window.SEED = {
     if(!D){ app.innerHTML = renderGate(`<h2 class="authtitle">Sem dados ainda</h2><p class="muted" style="text-align:center">O admin precisa entrar primeiro para publicar os dados do torneio.</p>${btns}`); return; }
     if(!season(state.season)) state.season = D.currentSeason;
     const tab = (state.tab === "admins" && !state.admin) ? "liga" : state.tab;
-    let body = header() + "<main" + (enterNext ? ' class="enter"' : "") + ">" + renderNotice() + hero(); enterNext = false;
+    const doEnter = enterNext; let body = renderRail(doEnter) + header() + "<main" + (doEnter ? ' class="enter"' : "") + ">" + renderNotice() + hero(); enterNext = false;
     if(tab === "liga") body += renderLiga(state.season);
     else if(tab === "copa") body += renderCopa(state.season);
     else if(tab === "times") body += renderTimes(state.season);
@@ -1053,6 +1118,7 @@ window.SEED = {
     else if(tab === "admins") body += renderAdmins();
     else body += renderSuper(state.season);
     body += `</main><div class="footpill pill">HOSPÍCIO BATTLE POKÉMON · HBP</div>` + renderMonModal() + renderProfileModal() + renderModal();
+    document.body.classList.add("hasrail");
     app.innerHTML = body;
     const input = document.getElementById("modal-input");
     if(input){ input.focus(); input.onkeydown = (e) => { if(e.key === "Enter") HBP.submitModal(); }; }
@@ -1279,6 +1345,7 @@ window.SEED = {
     }
   };
   window.HBP = HBP;
+  window.HBP_badge = badge; window.HBP_TYPES = TYPE_IMG;
   boot();
 })();
 </script>
@@ -1318,6 +1385,104 @@ window.SEED = {
     if(tilted){ tilted.style.setProperty("--rx", "0deg"); tilted.style.setProperty("--ry", "0deg"); tilted = null; }
     if(fx){ fx.style.setProperty("--mx", "0"); fx.style.setProperty("--my", "0"); }
   });
+})();
+</script>
+<script>
+(function(){
+  var menu = null, owner = null, hi = -1;
+  function esc(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
+  function typeBadge(v){ return (window.HBP_TYPES && window.HBP_TYPES[v] && window.HBP_badge) ? window.HBP_badge(v) : ""; }
+  function close(){ if(menu){ menu.remove(); } menu = null; owner = null; hi = -1; }
+  function place(){
+    if(!menu || !owner) return;
+    var r = owner.getBoundingClientRect(), vh = window.innerHeight, vw = window.innerWidth;
+    menu.style.minWidth = Math.max(r.width, 170) + "px";
+    var below = vh - r.bottom - 16, above = r.top - 16, flip = below < 190 && above > below;
+    menu.style.maxHeight = Math.max(120, Math.min(300, flip ? above : below)) + "px";
+    menu.style.left = Math.min(Math.max(8, r.left), vw - menu.offsetWidth - 8) + "px";
+    if(flip){ menu.style.top = "auto"; menu.style.bottom = (vh - r.top + 8) + "px"; }
+    else { menu.style.bottom = "auto"; menu.style.top = (r.bottom + 8) + "px"; }
+  }
+  function mark(i){
+    if(!menu) return; hi = i;
+    Array.prototype.forEach.call(menu.children, function(c, k){ c.classList.toggle("hi", k === i); });
+    if(menu.children[i]) menu.children[i].scrollIntoView({ block:"nearest" });
+  }
+  function open(el, list, current, pick){
+    close(); if(!list.length) return;
+    owner = el; menu = document.createElement("div"); menu.className = "dd"; menu.setAttribute("role", "listbox");
+    list.forEach(function(it){
+      var b = document.createElement("button"); b.type = "button";
+      b.className = "ddopt" + (it.value === current ? " active" : "");
+      b.innerHTML = (it.badge ? it.badge : "") + "<span>" + esc(it.label) + "</span>";
+      b.addEventListener("mousedown", function(e){ e.preventDefault(); });
+      b.addEventListener("click", function(){ close(); pick(it.value); });
+      menu.appendChild(b);
+    });
+    document.body.appendChild(menu); place();
+    var act = menu.querySelector(".active"); if(act) act.scrollIntoView({ block:"nearest" });
+  }
+  function openSelect(sel){
+    if(sel.disabled) return;
+    var list = Array.prototype.map.call(sel.options, function(o){ return { value:o.value, label:o.textContent, badge:typeBadge(o.value) }; });
+    open(sel, list, sel.value, function(v){ sel.value = v; sel.dispatchEvent(new Event("change", { bubbles:true })); sel.focus(); });
+  }
+  function showList(inp, filter){
+    var dl = document.getElementById(inp.getAttribute("data-list")); if(!dl){ close(); return; }
+    var all = Array.prototype.map.call(dl.options, function(o){ return { value:o.value, label:o.value, badge:typeBadge(o.value) }; });
+    var q = (filter || "").trim().toLowerCase();
+    var list = q ? all.filter(function(o){ return o.value.toLowerCase().indexOf(q) !== -1; }) : all;
+    if(!list.length){ close(); return; }
+    open(inp, list, inp.value, function(v){
+      inp.value = v;
+      inp.dispatchEvent(new Event("input", { bubbles:true }));
+      inp.dispatchEvent(new Event("change", { bubbles:true }));
+    });
+  }
+  document.addEventListener("mousedown", function(e){
+    var t = e.target;
+    if(t && t.tagName === "SELECT"){
+      e.preventDefault();
+      if(owner === t){ close(); } else { t.focus(); openSelect(t); }
+      return;
+    }
+    if(menu && !menu.contains(t) && t !== owner) close();
+  }, true);
+  document.addEventListener("focusin", function(e){
+    var t = e.target;
+    if(!t || t.tagName !== "INPUT") return;
+    if(t.hasAttribute("list")){ t.setAttribute("data-list", t.getAttribute("list")); t.removeAttribute("list"); }
+    if(t.hasAttribute("data-list") && owner !== t) showList(t, "");
+  });
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    if(t && t.tagName === "INPUT" && t.hasAttribute("data-list") && owner !== t) showList(t, "");
+  });
+  document.addEventListener("input", function(e){
+    var t = e.target;
+    if(t && t.tagName === "INPUT" && t.hasAttribute("data-list")) showList(t, t.value);
+  });
+  document.addEventListener("keydown", function(e){
+    var t = e.target;
+    if(!menu){
+      if(t && t.tagName === "SELECT" && (e.key === " " || e.key === "Enter" || e.key === "ArrowDown" || e.key === "ArrowUp")){ e.preventDefault(); openSelect(t); }
+      return;
+    }
+    if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(); return; }
+    if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+      e.preventDefault();
+      var n = menu.children.length, d = e.key === "ArrowDown" ? 1 : -1;
+      mark(hi < 0 ? (d > 0 ? 0 : n - 1) : (hi + d + n) % n);
+      return;
+    }
+    if((e.key === "Enter" || (e.key === " " && owner && owner.tagName === "SELECT")) && hi >= 0 && menu.children[hi]){
+      e.preventDefault(); e.stopPropagation(); menu.children[hi].click();
+    }
+  }, true);
+  window.addEventListener("scroll", function(e){ if(menu && !menu.contains(e.target)) place(); }, true);
+  window.addEventListener("resize", place);
+  var app = document.getElementById("app");
+  if(app && window.MutationObserver){ new MutationObserver(function(){ if(owner && !owner.isConnected) close(); }).observe(app, { childList:true, subtree:true }); }
 })();
 </script>
 </body>
