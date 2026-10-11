@@ -358,42 +358,6 @@
   .setrow:first-of-type { margin-top:8px; }
   .setinfo { min-width:0; }
   .setrow button { padding:6px 14px; flex-shrink:0; }
-
-  /* ===== Imagens do meta e calculadora ===== */
-  .meta-poke { display:inline-flex; align-items:center; gap:7px; min-width:0; }
-  .meta-poke img { width:38px; height:38px; object-fit:contain; image-rendering:auto; flex:0 0 38px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.2)); }
-  .mt-poke-img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
-  .mt-mh { align-items:center; }
-  .meta-sync { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .meta-sync-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .sync-dot { width:8px; height:8px; display:inline-block; border-radius:50%; background:#37c781; margin-right:6px; box-shadow:0 0 0 4px rgba(55,199,129,.12); }
-  .sync-dot.busy { background:#f2b84b; animation:pulse .9s ease-in-out infinite alternate; }
-  @keyframes pulse { to { opacity:.35; transform:scale(.75); } }
-  .loading-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg); color:var(--text); }
-  .loading-card { width:100%; max-width:380px; min-height:230px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:13px; padding:26px; text-align:center; background:var(--surface); background-image:var(--panel-grad); color:var(--text); border-radius:30px 30px 30px 10px; box-shadow:var(--shadow); }
-  .loading-logo { width:100%; max-width:240px; height:auto; margin-bottom:4px; }
-  .loading-screen p { margin:0; color:var(--muted); font-size:.84rem; }
-  .loading-ball { width:64px; height:64px; border-radius:50%; position:relative; overflow:hidden; border:4px solid var(--text); background:var(--surface2); box-shadow:0 8px 18px rgba(0,0,0,.24); animation:pokeSpin 1.15s linear infinite; }
-  .loading-ball::before { content:""; position:absolute; left:-4px; right:-4px; top:-4px; height:33px; background:var(--red); border-bottom:4px solid var(--text); }
-  .loading-ball::after { content:""; position:absolute; width:20px; height:20px; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--surface); border:4px solid var(--text); box-shadow:inset 0 0 0 3px var(--surface); }
-  @keyframes pokeSpin { to { transform:rotate(360deg); } }
-  .calcgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
-  .calcside { background:var(--inset); color:var(--inset-text); border-radius:20px 20px 20px 7px; padding:14px; --muted:#6b7078; --text:var(--inset-text); --surface2:#cfd5da; --surface:#fff; --line:rgba(0,0,0,.12); }
-  .calcside h3 { margin:0 0 10px; }
-  .calcside label { display:block; margin-top:8px; font-size:.75rem; font-weight:700; color:var(--muted); }
-  .calcside input, .calcside select { width:100%; margin-top:4px; }
-  .calcrow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-  .calcresult { margin-top:14px; padding:16px; border-radius:18px; background:linear-gradient(135deg,rgba(212,50,42,.12),rgba(142,68,214,.16)); border:1px solid rgba(142,68,214,.25); }
-  .calcresult strong { font-size:1.25rem; }
-  .calcnote { font-size:.76rem; line-height:1.45; }
-  @media(max-width:760px){ .calcgrid { grid-template-columns:1fr; } }
-
-  .dex-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:7px; max-height:520px; overflow:auto; padding:4px; }
-  .dex-chip { border:1px solid var(--line); background:var(--surface2); color:var(--text); border-radius:10px; padding:8px 9px; text-align:left; cursor:pointer; font-size:.78rem; transition:.15s ease; }
-  .dex-chip:hover { border-color:var(--accent); transform:translateY(-1px); }
-  .dex-count { font-size:.76rem; color:var(--muted); margin:8px 0 10px; }
-  .mt-config { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
-  .mt-config span { font-size:.68rem; padding:4px 7px; border-radius:999px; background:var(--surface2); color:var(--muted); }
 </style>
 </head>
 <body>
@@ -401,8 +365,6 @@
 <div id="app"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1"></script>
-<script src="https://unpkg.com/@smogon/calc/dist/data/production.min.js"></script>
-<script src="https://unpkg.com/@smogon/calc/dist/production.min.js"></script>
 <script id="data-script">
 // Dados iniciais (só usados uma vez, quando o admin entra pela primeira vez e o banco está vazio)
 window.SEED = {
@@ -526,7 +488,7 @@ window.SEED = {
   const ADMIN_KEY = "hbp_admin_on";
   function loadAdminOn(){ try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch(e){ return false; } }
   let enterNext = true;
-  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false, metaLive: null, metaBusy: false, metaMsg: "", metaSearch: "", dexQ: "", metaDetail: null, metaDetailBusy: false, metaDetailMsg: "", allPokemon: [], doubleFormats: null, formatsBusy: false, calc: { attacker:"Incineroar", defender:"Garchomp", move:"Flare Blitz", level:50, aAtk:252, aSpA:0, dHp:252, dDef:0, dSpD:0, weather:"", terrain:"", item:"", ability:"", nature:"Adamant" } };
+  let state = { adminOn: loadAdminOn(), tab: "liga", season: 1, session: null, profile: null, profiles: [], booting: true, authMode: "login", authMsg: "", authBusy: false, authEmail: "", authUser: "", authName: "", profileEdit: false, profileBusy: false, seasonSet: false, admin: false, modal: null, notice: null, openTeams: {}, monView: null, seasonOpen: false };
 
   function seasonNums(){ return Object.keys(D.seasons).map(Number).sort((a,b)=>a-b); }
   function season(n){ return D.seasons[String(n)]; }
@@ -600,32 +562,16 @@ window.SEED = {
   // Foto fixa (snapshot) coletada em META.collected. Não atualiza sozinha.
   const META = {"format":"Pokémon Champions VGC 2026 · Reg M-C","source":"Pikalytics","sourceUrl":"https://www.pikalytics.com/pokedex/gen9championsvgc2026regmc","collected":"10/10/2026","usage":[{"n":"Rillaboom","u":35.2,"w":51.507,"t":["Grass"]},{"n":"Sneasler","u":31.76,"w":49.82,"t":["Fighting","Poison"]},{"n":"Incineroar","u":25.12,"w":49.814,"t":["Fire","Dark"]},{"n":"Golisopod","u":20.78,"w":51.116,"t":["Bug","Water"]},{"n":"Salamence","u":20.76,"w":50.204,"t":["Dragon","Flying"]},{"n":"Indeedee-F","u":20.25,"w":50.682,"t":["Psychic","Normal"]},{"n":"Kingambit","u":20.11,"w":49.585,"t":["Dark","Steel"]},{"n":"Farigiraf","u":19.66,"w":51.143,"t":["Normal","Psychic"]},{"n":"Basculegion","u":18.48,"w":48.393,"t":["Water","Ghost"]},{"n":"Garchomp","u":16.76,"w":48.403,"t":["Dragon","Ground"]},{"n":"Charizard","u":15.8,"w":50.581,"t":["Fire","Flying"]},{"n":"Gholdengo","u":15.1,"w":51.269,"t":["Steel","Ghost"]},{"n":"Archaludon","u":15.02,"w":52.029,"t":["Steel","Dragon"]},{"n":"Pelipper","u":12.05,"w":49.572,"t":["Water","Flying"]},{"n":"Whimsicott","u":11.43,"w":46.236,"t":["Grass","Fairy"]},{"n":"Milotic","u":11.22,"w":50.756,"t":["Water"]},{"n":"Raichu","u":10.55,"w":53.433,"t":["Electric"]},{"n":"Sylveon","u":9.61,"w":49.836,"t":["Fairy"]},{"n":"Politoed","u":9.6,"w":51.844,"t":["Water"]},{"n":"Arcanine-Hisui","u":9.31,"w":52.204,"t":["Fire","Rock"]},{"n":"Staraptor","u":9.04,"w":49.555,"t":["Normal","Flying"]},{"n":"Grimmsnarl","u":8.97,"w":50.541,"t":["Dark","Fairy"]},{"n":"Tyranitar","u":8.52,"w":51.073,"t":["Rock","Dark"]},{"n":"Gardevoir","u":7.68,"w":49.431,"t":["Psychic","Fairy"]},{"n":"Sinistcha","u":7.41,"w":47.396,"t":["Grass","Ghost"]}],"cores":{"2":[{"m":["Rillaboom","Sneasler"],"c":2607,"p":23.8},{"m":["Incineroar","Rillaboom"],"c":2593,"p":23.7},{"m":["Rillaboom","Salamence-Mega"],"c":2303,"p":21.1},{"m":["Salamence-Mega","Sneasler"],"c":2161,"p":19.8},{"m":["Gholdengo","Rillaboom"],"c":1986,"p":18.2}],"3":[{"m":["Rillaboom","Salamence-Mega","Sneasler"],"c":1376,"p":12.6},{"m":["Incineroar","Rillaboom","Sneasler"],"c":1189,"p":10.9},{"m":["Gholdengo","Raichu-Mega-Y","Rillaboom"],"c":1061,"p":9.7},{"m":["Kingambit","Rillaboom","Sneasler"],"c":926,"p":8.5},{"m":["Gholdengo","Rillaboom","Salamence-Mega"],"c":894,"p":8.2}],"4":[{"m":["Floette-Eternal-Mega","Incineroar","Rillaboom","Sneasler"],"c":621,"p":5.7},{"m":["Kingambit","Rillaboom","Salamence-Mega","Sneasler"],"c":602,"p":5.5},{"m":["Arcanine-Hisui","Gholdengo","Raichu-Mega-Y","Rillaboom"],"c":578,"p":5.3},{"m":["Gholdengo","Rillaboom","Salamence-Mega","Sneasler"],"c":523,"p":4.8},{"m":["Arcanine-Hisui","Rillaboom","Salamence-Mega","Sneasler"],"c":519,"p":4.7}]},"teams":[{"r":1,"p":"Lloyd Villar","rec":"13-1","ev":"Make It Rain - VGC Tournament","mons":[{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Protect","Acrobatics"]},{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Protect","Tailwind","Draco Meteor"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Protect","Rock Slide","Knock Off","Dragon Dance"]},{"n":"Excadrill","t":["Ground","Steel"],"a":"Sand Rush","i":"Focus Sash","mv":["High Horsepower","Protect","Rock Slide","Iron Head"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Trick","Trick Room","Dazzling Gleam"]},{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Protect","Muddy Water","Hypnosis","Coil"]}]},{"r":2,"p":"Luca","rec":"13-2","ev":"Maddo's Cup #12","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Draco Meteor","Tailwind","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]}]},{"r":3,"p":"DDee","rec":"12-0","ev":"Talon's FIGHT CLUB #101","mons":[{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Flower Veil","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Calm Mind","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Grassy Seed","mv":["Close Combat","Dire Claw","Rock Slide","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Flare Blitz","Throat Chop","Fake Out","Parting Shot"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Wood Hammer","Grassy Glide","High Horsepower","Fake Out"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Encore","Protect"]}]},{"r":4,"p":"Mahir X","rec":"10-1","ev":"Coupe Critique Champions #4","mons":[{"n":"Swampert-Mega","t":["Water","Ground"],"a":"Torrent","i":"Swampertite","mv":["Wave Crash","Earthquake","Ice Punch","Protect"]},{"n":"Pelipper","t":["Water","Flying"],"a":"Drizzle","i":"Sitrus Berry","mv":["Weather Ball","Hurricane","Tailwind","Wide Guard"]},{"n":"Archaludon","t":["Steel","Dragon"],"a":"Stamina","i":"Leftovers","mv":["Electro Shot","Dragon Pulse","Flash Cannon","Protect"]},{"n":"Grimmsnarl","t":["Dark","Fairy"],"a":"Prankster","i":"Light Clay","mv":["Light Screen","Reflect","Parting Shot","Spirit Break"]},{"n":"Charizard-Mega-Y","t":["Fire","Flying"],"a":"Blaze","i":"Charizardite Y","mv":["Weather Ball","Heat Wave","Hurricane","Protect"]},{"n":"Venusaur","t":["Grass","Poison"],"a":"Chlorophyll","i":"Focus Sash","mv":["Leaf Storm","Sleep Powder","Sludge Bomb","Protect"]}]},{"r":5,"p":"ZayGM","rec":"10-0","ev":"Final Weekly Qualifier","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Fake Out","Dire Claw","Close Combat","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Rock Slide","Knock Off","Fire Punch","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Protect","Nasty Plot"]},{"n":"Excadrill","t":["Ground","Steel"],"a":"Sand Rush","i":"Focus Sash","mv":["High Horsepower","Rock Slide","Iron Head","Protect"]}]},{"r":6,"p":"Lightoz","rec":"12-0","ev":"ValkrixVGC Pokemon Champions League #03","mons":[{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Throat Chop","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Focus Sash","mv":["Expanding Force","Helping Hand","Trick Room","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Basculegion","t":["Water","Ghost"],"a":"Adaptability","i":"Life Orb","mv":["Wave Crash","Last Respects","Aqua Jet","Protect"]},{"n":"Dragonite-Mega","t":["Dragon","Flying"],"a":"Multiscale","i":"Dragoninite","mv":["Dragon Pulse","Heat Wave","Tailwind","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Flare Blitz","Throat Chop","Fake Out","Parting Shot"]}]},{"r":7,"p":"Corro","rec":"9-0","ev":"HeroicTitan's VGC Battle Arena","mons":[{"n":"Froslass-Mega","t":["Ice","Ghost"],"a":"Cursed Body","i":"Froslassite","mv":["Blizzard","Shadow Ball","Aurora Veil","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Encore","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Life Orb","mv":["Kowtow Cleave","Sucker Punch","Swords Dance","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Grassy Seed","mv":["Close Combat","Dire Claw","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]}]},{"r":8,"p":"dartsvgc","rec":"11-0","ev":"Tenki's Cart Weekly #119","mons":[{"n":"Indeedee-F","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Rocky Helmet","mv":["Psychic","Trick Room","Helping Hand","Follow Me"]},{"n":"Gengar-Mega","t":["Ghost","Poison"],"a":"Cursed Body","i":"Gengarite","mv":["Shadow Ball","Sludge Bomb","Icy Wind","Protect"]},{"n":"Armarouge","t":["Fire","Psychic"],"a":"Flash Fire","i":"Life Orb","mv":["Armor Cannon","Expanding Force","Trick Room","Protect"]},{"n":"Meowscarada","t":["Grass","Dark"],"a":"Protean","i":"Choice Scarf","mv":["Knock Off","Flower Trick","Triple Axel","U-turn"]},{"n":"Annihilape","t":["Fighting","Ghost"],"a":"Defiant","i":"Focus Sash","mv":["Close Combat","Phantom Force","Rock Slide","Protect"]},{"n":"Gardevoir-Mega","t":["Psychic","Fairy"],"a":"Trace","i":"Gardevoirite","mv":["Hyper Voice","Expanding Force","Thunderbolt","Protect"]}]},{"r":9,"p":"Evan_santos","rec":"11-1","ev":"[BR] Copa Oak Stadium #9","mons":[{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Muddy Water","Coil","Hypnosis","Recover"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Psychic","Dazzling Gleam","Trick"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Chople Berry","mv":["Fake Out","Flare Blitz","Throat Chop","Parting Shot"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Dire Claw","Close Combat","Throat Chop","Rock Tomb"]},{"n":"Staraptor-Mega","t":["Fighting","Flying"],"a":"Intimidate","i":"Staraptite","mv":["Brave Bird","Close Combat","Roost","Protect"]},{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Symbiosis","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Light of Ruin","Protect"]}]},{"r":10,"p":"Vinnamon","rec":"11-0","ev":"TARTAN TAKEDOWN #39","mons":[{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Grassy Seed","mv":["Trick Room","Psychic","Protect","Helping Hand"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Life Orb","mv":["Grassy Glide","Fake Out","Wood Hammer","High Horsepower"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Quick Attack","Hyper Beam","Detect"]},{"n":"Camerupt-Mega","t":["Fire","Ground"],"a":"Solid Rock","i":"Cameruptite","mv":["Earth Power","Heat Wave","Protect","Ancient Power"]},{"n":"Garchomp-Mega-Z","t":["Dragon"],"a":"Rough Skin","i":"Garchompite Z","mv":["Draco Meteor","Earth Power","Flamethrower","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Fake Out","Flare Blitz","Parting Shot","Throat Chop"]}]},{"r":11,"p":"BentoRS","rec":"9-1","ev":"Copa Oak Stadium #11","mons":[{"n":"Delphox-Mega","t":["Fire","Psychic"],"a":"Blaze","i":"Delphoxite","mv":["Heat Wave","Psychic","Nasty Plot","Protect"]},{"n":"Floette-Eternal-Mega","t":["Fairy"],"a":"Flower Veil","i":"Floettite","mv":["Moonblast","Dazzling Gleam","Calm Mind","Protect"]},{"n":"Incineroar","t":["Fire","Dark"],"a":"Intimidate","i":"Sitrus Berry","mv":["Fake Out","Flare Blitz","Throat Chop","Parting Shot"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Life Orb","mv":["Kowtow Cleave","Sucker Punch","Swords Dance","Protect"]},{"n":"Sinistcha","t":["Grass","Ghost"],"a":"Hospitality","i":"Colbur Berry","mv":["Matcha Gotcha","Rage Powder","Trick Room","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Poison Touch","i":"Focus Sash","mv":["Fake Out","Close Combat","Poison Jab","Quick Guard"]}]},{"r":12,"p":"nanamixd","rec":"10-1","ev":"VGC Reg M-C Ingame Tour #7","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Chople Berry","mv":["Kowtow Cleave","Sucker Punch","Low Kick","Iron Head"]},{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Sitrus Berry","mv":["Psychic","Thunderbolt","Trick Room","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Wood Hammer","Grassy Glide","High Horsepower","Fake Out"]}]},{"r":13,"p":"CloudDino","rec":"8-1","ev":"VGC Reg M-C Ingame Tour #8","mons":[{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Dragapult","t":["Dragon","Ghost"],"a":"Clear Body","i":"Colbur Berry","mv":["Draco Meteor","Shadow Ball","Will-O-Wisp","Psychic Fangs"]},{"n":"Glimmora-Mega","t":["Rock","Poison"],"a":"Toxic Debris","i":"Glimmoranite","mv":["Sludge Bomb","Power Gem","Earth Power","Spiky Shield"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Focus Sash","mv":["Kowtow Cleave","Sucker Punch","Low Kick","Protect"]},{"n":"Volcarona","t":["Bug","Fire"],"a":"Flame Body","i":"Rocky Helmet","mv":["Overheat","Protect","Rage Powder","Tailwind"]},{"n":"Basculegion","t":["Water","Ghost"],"a":"Adaptability","i":"Life Orb","mv":["Aqua Jet","Wave Crash","Last Respects","Protect"]}]},{"r":14,"p":"Evan Scott","rec":"6-0","ev":"Thavorian's Tubby tour","mons":[{"n":"Mudsdale","t":["Ground"],"a":"Stamina","i":"Leftovers","mv":["Stomping Tantrum","Body Press","Fissure","Protect"]},{"n":"Gengar-Mega","t":["Ghost","Poison"],"a":"Cursed Body","i":"Gengarite","mv":["Shadow Ball","Sludge Bomb","Icy Wind","Protect"]},{"n":"Dragonite","t":["Dragon","Flying"],"a":"Multiscale","i":"Life Orb","mv":["Dragon Claw","Low Kick","Extreme Speed","Tailwind"]},{"n":"Clefable-Mega","t":["Fairy","Flying"],"a":"Unaware","i":"Clefablite","mv":["Moonblast","Flamethrower","Follow Me","Protect"]},{"n":"Pangoro","t":["Fighting","Dark"],"a":"Scrappy","i":"Focus Sash","mv":["Close Combat","Darkest Lariat","Beat Up","Detect"]},{"n":"Empoleon","t":["Water","Steel"],"a":"Competitive","i":"Sitrus Berry","mv":["Hydro Pump","Flash Cannon","Yawn","Protect"]}]},{"r":15,"p":"JuanPabla","rec":"9-1","ev":"Champions League VGC September","mons":[{"n":"Staraptor-Mega","t":["Fighting","Flying"],"a":"Intimidate","i":"Staraptite","mv":["Close Combat","Brave Bird","Tailwind","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Extreme Speed","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Shadow Ball","Make It Rain","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Miracle Seed","mv":["Grassy Glide","Wood Hammer","High Horsepower","Fake Out"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Detect"]}]},{"r":16,"p":"LelloCartello","rec":"10-1","ev":"Tenki's Cart Weekly #117","mons":[{"n":"Metagross-Mega","t":["Steel","Psychic"],"a":"Clear Body","i":"Metagrossite","mv":["Iron Head","Psychic Fangs","Body Press","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Choice Scarf","mv":["Expanding Force","Imprison","Trick","Trick Room"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"Psychic Seed","mv":["Close Combat","Dire Claw","Rock Slide","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Head Smash","Rock Slide","Protect"]},{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Dragon Pulse","Heat Wave","Protect"]},{"n":"Milotic","t":["Water"],"a":"Competitive","i":"Leftovers","mv":["Scald","Icy Wind","Recover","Protect"]}]},{"r":17,"p":"Sela133VII","rec":"10-2","ev":"Alpensee Tour (Reg M-C) #76","mons":[{"n":"Charizard-Mega-Y","t":["Fire","Flying"],"a":"Blaze","i":"Charizardite Y","mv":["Heat Wave","Weather Ball","Solar Beam","Protect"]},{"n":"Aerodactyl-Mega","t":["Rock","Flying"],"a":"Unnerve","i":"Aerodactylite","mv":["Rock Slide","Dual Wingbeat","Tailwind","Wide Guard"]},{"n":"Garchomp","t":["Dragon","Ground"],"a":"Rough Skin","i":"Life Orb","mv":["Earthquake","Stomping Tantrum","Dragon Claw","Protect"]},{"n":"Farigiraf","t":["Normal","Psychic"],"a":"Armor Tail","i":"Sitrus Berry","mv":["Psychic","Thunderbolt","Roar","Trick Room"]},{"n":"Sylveon","t":["Fairy"],"a":"Pixilate","i":"Fairy Feather","mv":["Hyper Voice","Hyper Beam","Quick Attack","Protect"]},{"n":"Kingambit","t":["Dark","Steel"],"a":"Defiant","i":"Focus Sash","mv":["Kowtow Cleave","Sucker Punch","Iron Head","Low Kick"]}]},{"r":18,"p":"Nbryu","rec":"9-0","ev":"[Reg M-C Bo3] THURSDAY NIGHT THROWDOWN #3","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Hyper Voice","Double-Edge","Tailwind","Protect"]},{"n":"Froslass-Mega","t":["Ice","Ghost"],"a":"Cursed Body","i":"Froslassite","mv":["Blizzard","Aurora Veil","Shadow Ball","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Life Orb","mv":["Fake Out","Grassy Glide","Wood Hammer","High Horsepower"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Fake Out","Close Combat","Dire Claw","Protect"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Grassy Seed","mv":["Nasty Plot","Shadow Ball","Make It Rain","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Head Smash","Flare Blitz","Extreme Speed","Protect"]}]},{"r":19,"p":"Evan M","rec":"7-0","ev":"London Corviknights VGC Weekly Tour 14","mons":[{"n":"Salamence-Mega","t":["Dragon","Flying"],"a":"Intimidate","i":"Salamencite","mv":["Draco Meteor","Hyper Voice","Tailwind","Protect"]},{"n":"Raichu-Mega-Y","t":["Electric"],"a":"Lightning Rod","i":"Raichunite Y","mv":["Zap Cannon","Focus Blast","Fake Out","Protect"]},{"n":"Arcanine-Hisui","t":["Fire","Rock"],"a":"Rock Head","i":"Focus Sash","mv":["Flare Blitz","Protect","Head Smash","Extreme Speed"]},{"n":"Gholdengo","t":["Steel","Ghost"],"a":"Good as Gold","i":"Life Orb","mv":["Make It Rain","Shadow Ball","Nasty Plot","Protect"]},{"n":"Rillaboom","t":["Grass"],"a":"Grassy Surge","i":"Sitrus Berry","mv":["Wood Hammer","High Horsepower","Grassy Glide","Fake Out"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Close Combat","Rock Tomb","Dire Claw","Protect"]}]},{"r":20,"p":"ItaloMassuco","rec":"8-1","ev":"Intimidators Champions Challenge #47","mons":[{"n":"Dragapult","t":["Dragon","Ghost"],"a":"Clear Body","i":"Life Orb","mv":["Dragon Darts","Phantom Force","U-turn","Protect"]},{"n":"Indeedee","t":["Psychic","Normal"],"a":"Psychic Surge","i":"Colbur Berry","mv":["Psychic","Follow Me","Trick Room","Helping Hand"]},{"n":"Tyranitar-Mega","t":["Rock","Dark"],"a":"Sand Stream","i":"Tyranitarite","mv":["Rock Slide","Knock Off","Low Kick","Protect"]},{"n":"Meganium-Mega","t":["Grass","Fairy"],"a":"Leaf Guard","i":"Meganiumite","mv":["Solar Beam","Dazzling Gleam","Weather Ball","Protect"]},{"n":"Sneasler","t":["Fighting","Poison"],"a":"Unburden","i":"White Herb","mv":["Close Combat","Dire Claw","Coaching","Protect"]},{"n":"Armarouge","t":["Fire","Psychic"],"a":"Flash Fire","i":"Psychic Seed","mv":["Armor Cannon","Expanding Force","Trick Room","Protect"]}]}]};
   const TYPE_EN_PT = { Normal:"Normal", Fire:"Fogo", Water:"Água", Electric:"Elétrico", Grass:"Grama", Ice:"Gelo", Fighting:"Lutador", Poison:"Venenoso", Ground:"Terra", Flying:"Voador", Psychic:"Psíquico", Bug:"Inseto", Rock:"Pedra", Ghost:"Fantasma", Dragon:"Dragão", Dark:"Sombrio", Steel:"Aço", Fairy:"Fada" };
-  function currentMeta(){ return state.metaLive || META; }
-  const POKE_IDS = {Rillaboom:812,Sneasler:903,Incineroar:727,Golisopod:768,Salamence:373,"Indeedee-F":10186,Indeedee:876,Kingambit:983,Farigiraf:981,Basculegion:978,Garchomp:445,Charizard:6,Gholdengo:1000,Archaludon:1018,Pelipper:279,Whimsicott:547,Milotic:350,Raichu:26,Sylveon:700,Politoed:186,"Arcanine-Hisui":10230,Tyranitar:248,Gardevoir:282,Sinistcha:1013};
-  function slugSprite(name){
-    const n=String(name||"");
-    if(/^Indeedee-F$/i.test(n)) return "indeedee-female";
-    if(/^Arcanine-Hisui$/i.test(n)) return "__pokeapi_10230";
-    return n.toLowerCase().replace(/♀/g,"-f").replace(/♂/g,"-m").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  }
-  function metaSprite(name){
-    const slug=slugSprite(name);
-    return slug.startsWith("__pokeapi_") ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${slug.slice(10)}.png` : `https://img.pokemondb.net/sprites/home/normal/${slug}.png`;
-  }
-  function imgFallback(img){
-    if(!img || img.dataset.fallback) return;
-    img.dataset.fallback="1";
-    const n=img.dataset.pokemon||img.alt||"", id=POKE_IDS[n] || POKE_IDS[n.replace(/-Mega.*$/i,"")];
-    if(id) img.src=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-    else img.style.display="none";
-  }
   function metaTypes(arr){ return (arr || []).map(t => badge(TYPE_EN_PT[t] || t)).join(""); }
   function mkey(name){ return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean).sort().join(" "); }
   function metaSetsFor(name){
-    const M=currentMeta(), k = mkey(name); if(!k) return [];
+    const k = mkey(name); if(!k) return [];
     const out = [];
-    (M.teams||[]).forEach(t => (t.mons||[]).forEach(m => { if(mkey(m.n) === k) out.push(m); }));
-    if(!out.length){ const toks = k.split(" "); (M.teams||[]).forEach(t => (t.mons||[]).forEach(m => { const mt = mkey(m.n).split(" "); if(toks.every(x => mt.indexOf(x) >= 0)) out.push(m); })); }
+    META.teams.forEach(t => t.mons.forEach(m => { if(mkey(m.n) === k) out.push(m); }));
+    if(!out.length){
+      const toks = k.split(" ");
+      META.teams.forEach(t => t.mons.forEach(m => { const mt = mkey(m.n).split(" "); if(toks.every(x => mt.indexOf(x) >= 0)) out.push(m); }));
+    }
     return out;
   }
   function renderSetSuggestions(mon){
@@ -643,170 +589,29 @@ window.SEED = {
       <p class="muted" style="font-size:.72rem;margin:8px 0 0 0">"Usar" preenche habilidade, item e moves. Depois é só Salvar.</p></details>`;
   }
   function metaMonCard(m){
-    return `<div class="mt-mon"><div class="mt-mh"><img class="mt-poke-img" src="${esc(metaSprite(m.n))}" data-pokemon="${esc(m.n)}" onerror="HBP_imgFallback(this)" alt="${esc(m.n)}" loading="lazy"><div><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span><div class="muted mt-ai">${esc(m.a||"—")} · ${esc(m.i||"—")}</div></div></div><div class="mt-config"><span>Level: ${esc(m.level||"50 (padrão VGC)")}</span><span>IVs: ${esc(m.ivs||"não publicados")}</span><span>EVs: ${esc(m.evs||"não publicados")}</span><span>Natureza: ${esc(m.nature||"não publicada")}</span></div><div class="mt-mv">${(m.mv||[]).map(x => `<span>${esc(x)}</span>`).join("")}</div><a class="muted" style="display:inline-block;margin-top:8px;font-size:.72rem" href="${META.sourceUrl}/${encodeURIComponent(m.n)}" target="_blank" rel="noopener">Ver análise agregada de ${esc(m.n)} ↗</a></div>`;
-  }
-  function parsePikalyticsHTML(text){
-    const root = new DOMParser().parseFromString(text,"text/html"), old=currentMeta();
-    const typeMap={};
-    root.querySelectorAll(".team-pokemon-card").forEach(card=>{
-      const n=card.querySelector(".team-pokemon-name")?.textContent.trim(); if(!n) return;
-      typeMap[mkey(n)]=[...card.querySelectorAll(".team-pokemon-types .type")].map(x=>x.textContent.trim());
-    });
-    const usage=[...root.querySelectorAll(".tournament-top20-card")].map((card,i)=>{
-      const n=card.querySelector(".tournament-top20-name")?.textContent.trim();
-      const u=parseFloat((card.querySelector(".tournament-top20-usage")?.textContent||"").replace(",","."));
-      const img=card.querySelector("img")?.src;
-      const prior=(old.usage||[]).find(x=>mkey(x.n)===mkey(n));
-      return {n,u,w:prior?.w||0,t:typeMap[mkey(n)]||prior?.t||[],img};
-    }).filter(x=>x.n && Number.isFinite(x.u));
-    if(!usage.length) throw new Error("não encontrei a tabela de uso");
-    const cores={"2":[],"3":[],"4":[]};
-    root.querySelectorAll(".pokedex-format-core-entry").forEach(e=>{
-      const mons=[...e.querySelectorAll(".pokedex-format-core-pokemon-link")].map(x=>x.textContent.trim());
-      const spans=[...e.querySelectorAll(".pokedex-format-core-meta span")].map(x=>x.textContent.trim());
-      const c=parseInt((spans[0]||"").replace(/\\D/g,""))||0, pct=parseFloat((spans[1]||"").replace(",","."))||0;
-      if(cores[String(mons.length)]) cores[String(mons.length)].push({m:mons,c,p:pct});
-    });
-    const teams=[...root.querySelectorAll(".pokedex-format-team-entry")].slice(0,20).map((entry,i)=>{
-      const p=entry.querySelector(".pokedex-format-team-author")?.textContent.trim()||"—";
-      const rec=entry.querySelector(".pokedex-format-team-record")?.textContent.trim()||"—";
-      const ev=entry.querySelector(".pokedex-format-team-meta")?.childNodes[0]?.textContent.trim()||"Top team";
-      const mons=[...entry.querySelectorAll(".team-pokemon-card")].map(card=>({
-        n:card.querySelector(".team-pokemon-name")?.textContent.trim()||"",
-        t:[...card.querySelectorAll(".team-pokemon-types .type")].map(x=>x.textContent.trim()),
-        a:card.querySelector(".team-pokemon-prop-row .team-prop-val-text")?.textContent.trim()||"",
-        i:card.querySelectorAll(".team-pokemon-prop-row .team-prop-val-text")[1]?.textContent.trim()||"",
-        mv:[...card.querySelectorAll(".team-move-name")].map(x=>x.textContent.trim()),
-        level:"50 (padrão VGC)", ivs:"não publicados", evs:"não publicados", nature:"não publicada",
-        img:card.querySelector("img")?.src
-      })).filter(x=>x.n);
-      return {r:i+1,p,rec,ev,mons};
-    }).filter(x=>x.mons.length);
-    return {format:root.querySelector("h1")?.textContent.trim()||old.format,source:"Pikalytics",sourceUrl:META.sourceUrl,collected:new Date().toLocaleDateString("pt-BR"),usage,cores:{"2":cores["2"].slice(0,5),"3":cores["3"].slice(0,5),"4":cores["4"].slice(0,5)},teams:teams.length?teams:old.teams};
-  }
-  async function refreshMeta(){
-    if(state.metaBusy) return;
-    state.metaBusy=true; state.metaMsg="Atualizando do Pikalytics…"; render();
-    try{
-      const r=await fetch(META.sourceUrl,{cache:"no-store"}); if(!r.ok) throw new Error("Pikalytics respondeu HTTP "+r.status);
-      state.metaLive=parsePikalyticsHTML(await r.text()); state.metaMsg="Atualizado agora · "+state.metaLive.collected;
-      try{ localStorage.setItem("hbp-pikalytics",JSON.stringify(state.metaLive)); }catch(e){}
-    }catch(e){
-      state.metaMsg="Não consegui atualizar agora; exibindo o último snapshot. "+(e.message||"");
-    }finally{ state.metaBusy=false; render(); }
-  }
-  function loadMetaCache(){ try{ const x=JSON.parse(localStorage.getItem("hbp-pikalytics")||"null"); if(x&&x.usage) state.metaLive=x; }catch(e){} }
-  function readUsageRows(card){
-    return [...(card?.querySelectorAll(".pokedex-move-entry-new")||[])].slice(0,12).map(row=>({name:row.querySelector(".pokedex-inline-text,.pokedex-inline-text-offset")?.textContent.trim()||"",pct:parseFloat((row.querySelector(".pokedex-inline-right")?.textContent||"").replace(",","."))||0})).filter(x=>x.name);
-  }
-  const DOUBLE_FORMAT_FALLBACK = [
-    ["gen9championsvgc2026regmc","Pokémon Champions VGC 2026 · Reg M-C"],["gen9championsvgc2026regma","Pokémon Champions VGC 2026 · Reg M-A"],
-    ["gen9vgc2026regi","VGC 2026 · Reg I"],["gen9vgc2026regf","VGC 2026 · Reg F"],["gen9vgc2025regi","VGC 2025 · Reg I"],["gen9vgc2025regh","VGC 2025 · Reg H"],["gen9vgc2025regj","VGC 2025 · Reg J"],["gen9vgc2025regg","VGC 2025 · Reg G"],
-    ["gen9vgc2024regh","VGC 2024 · Reg H"],["gen9vgc2024regg","VGC 2024 · Reg G"],["gen9vgc2024regf","VGC 2024 · Reg F"],["gen9vgc2023regulatione","VGC 2023 · Reg E"],["gen9vgc2023regc","VGC 2023 · Reg C"],
-    ["series12","Series 12 · Battle Stadium Doubles"],["series11","Series 11 · Battle Stadium Doubles"],["series10","Series 10 · Battle Stadium Doubles"],["series9","Series 9 · Battle Stadium Doubles"],["series8","Series 8 · Battle Stadium Doubles"],["series7","Series 7 · Battle Stadium Doubles"]
-  ];
-  function formatBase(value){ return String(value||"").replace(/-\d+$/," ").trim(); }
-  async function loadDoubleFormats(){
-    if(state.doubleFormats || state.formatsBusy) return state.doubleFormats||DOUBLE_FORMAT_FALLBACK.map(x=>({id:x[0],label:x[1]}));
-    state.formatsBusy=true;
-    try{
-      const r=await fetch("https://www.pikalytics.com/pokedex",{cache:"no-store"}), d=new DOMParser().parseFromString(await r.text(),"text/html"), seen={};
-      const formats=[...d.querySelectorAll(".pokedex-format-select option")].map(o=>({id:formatBase(o.value),label:o.textContent.trim()})).filter(x=>{const l=x.label.toLowerCase();return x.id&&/(vgc|regulation set|series|battle stadium doubles)/i.test(l)&&!/(singles|\bou\b|tournament)/i.test(l)&&!seen[x.id]&&(seen[x.id]=1);});
-      state.doubleFormats=formats.length?formats:DOUBLE_FORMAT_FALLBACK.map(x=>({id:x[0],label:x[1]}));
-    }catch(e){ state.doubleFormats=DOUBLE_FORMAT_FALLBACK.map(x=>({id:x[0],label:x[1]})); }
-    finally{ state.formatsBusy=false; }
-    return state.doubleFormats;
-  }
-  async function loadAllPokemon(){
-    if(state.allPokemon.length) return;
-    try{
-      const r=await fetch("https://pokeapi.co/api/v2/pokemon-species?limit=2000",{cache:"force-cache"}), j=await r.json();
-      state.allPokemon=(j.results||[]).map(x=>x.name.split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join("-")).sort((a,b)=>a.localeCompare(b));
-      render();
-    }catch(e){}
-  }
-  function summaryPercent(d,label){
-    const el=[...d.querySelectorAll(".pokemon-ind-summary-item")].find(x=>(x.querySelector(".pokemon-ind-summary-title")?.textContent||"").trim().toLowerCase()===label.toLowerCase());
-    return el ? parseFloat((el.querySelector(".pokemon-ind-summary-text")?.textContent||"").replace(",",".")) : 0;
-  }
-  function parsePokemonPage(text,name){
-    const d=new DOMParser().parseFromString(text,"text/html"), cards=[...d.querySelectorAll(".pokedex-category-card")];
-    const image=metaSprite(name);
-    const partner=[...(cards[2]?.querySelectorAll(".pokedex-move-entry-new")||[])].slice(0,8).map(row=>({name:row.querySelector(".pokedex-inline-text,.pokedex-inline-text-offset")?.textContent.trim()||"",pct:parseFloat((row.querySelector(".pokedex-inline-right")?.textContent||"").replace(",","."))||0})).filter(x=>x.name);
-    return {name,image,usage:summaryPercent(d,"Usage Percent"),winrate:summaryPercent(d,"Winrate"),moves:readUsageRows(cards[1]),partners:partner,items:readUsageRows(cards[3]),abilities:readUsageRows(cards[4])};
-  }
-  async function searchMetaPokemon(value){
-    const name=String(value||document.getElementById("meta-search")?.value||"").trim();
-    if(!name) return;
-    state.metaSearch=name; state.metaDetailBusy=true; state.metaDetailMsg="Carregando regulações em dupla…"; render();
-    try{
-      const formats=await loadDoubleFormats();
-      let done=0;
-      const results=(await Promise.all(formats.map(async f=>{
-        try{
-          const r=await fetch(`${META.sourceUrl.replace(/gen9championsvgc2026regmc/,'')}${f.id}/${encodeURIComponent(name)}`,{cache:"no-store"});
-          if(!r.ok) return null;
-          const detail=parsePokemonPage(await r.text(),name); detail.regulation=f.label; detail.formatId=f.id; done++;
-          state.metaDetailMsg=`Consultando ${done}/${formats.length} regulações em dupla…`; return detail;
-        }catch(e){ return null; }
-      }))).filter(x=>x&&x.usage>0);
-      results.sort((a,b)=>b.usage-a.usage);
-      state.metaDetail=results[0]||null;
-      state.metaDetailMsg=state.metaDetail ? `Regulação mais usada: ${state.metaDetail.regulation} · ${state.metaDetail.usage.toFixed(3)}% de uso · ${results.length} regulação(ões) encontradas` : "Não encontrei dados desse Pokémon nas regulações em dupla disponíveis.";
-    }catch(e){ state.metaDetail=null; state.metaDetailMsg="Não consegui consultar as regulações em dupla agora."; }
-    finally{ state.metaDetailBusy=false; render(); }
-  }
-
-  function detailRows(list){ return (list||[]).map(x=>`<div class="corerow"><span>${esc(x.name)}</span><b>${x.pct.toFixed(3)}%</b></div>`).join("") || `<p class="pending">Sem dados.</p>`; }
-  function renderMetaDetail(){
-    if(!state.metaSearch && !state.metaDetailMsg) return "";
-    const d=state.metaDetail;
-    if(!d) return `<div class="card"><h2>Pesquisar Pokémon</h2><p class="muted">${esc(state.metaDetailMsg||"")}</p></div>`;
-    return `<div class="card"><div class="meta-sync"><div class="meta-poke"><img src="${esc(metaSprite(d.name))}" data-pokemon="${esc(d.name)}" onerror="HBP_imgFallback(this)" alt="${esc(d.name)}"><div><h2 style="margin:0">${esc(d.name)}</h2><p class="muted" style="margin:3px 0 0">${esc(state.metaDetailMsg)}</p><p style="margin:6px 0 0"><b>Uso:</b> ${d.usage.toFixed(3)}% · <b>Winrate:</b> ${d.winrate ? d.winrate.toFixed(3)+'%' : '—'}</p></div></div><button class="ghost" onclick="HBP.clearMetaSearch()">Limpar</button></div><div class="calcgrid"><div><div class="sec2">Golpes mais usados</div>${detailRows(d.moves)}</div><div><div class="sec2">Itens mais usados</div>${detailRows(d.items)}</div><div><div class="sec2">Habilidades</div>${detailRows(d.abilities)}</div><div><div class="sec2">Pokémon parceiros</div>${detailRows(d.partners)}</div></div></div>`;
-  }
-  function renderDexCatalog(){
-    const all=state.allPokemon||[], q=String(state.dexQ||"").trim().toLowerCase();
-    const shown=(q?all.filter(n=>n.toLowerCase().includes(q)):all);
-    return `<div class="card"><div class="meta-sync"><div><h2 style="margin:0 0 3px">Pokédex completa</h2><p class="muted" style="margin:0">Todos os Pokémon disponíveis para pesquisa. Clique em um nome para comparar as regulações em dupla.</p></div><input id="dex-q" placeholder="Filtrar catálogo…" value="${esc(state.dexQ||"")}" oninput="HBP.dexFilter(this.value)"></div><div class="dex-count">${shown.length} de ${all.length||"…"} Pokémon exibidos</div><div class="dex-grid">${shown.map(n=>`<button class="dex-chip" onclick='HBP.searchMetaPokemon(${JSON.stringify(n)})'>${esc(n)}</button>`).join("") || `<p class="pending">Nenhum Pokémon encontrado.</p>`}</div></div>`;
+    return `<div class="mt-mon"><div class="mt-mh"><b>${esc(m.n)}</b> <span class="utypes">${metaTypes(m.t)}</span></div><div class="muted mt-ai">${esc(m.a)} · ${esc(m.i)}</div><div class="mt-mv">${m.mv.map(x => `<span>${esc(x)}</span>`).join("")}</div></div>`;
   }
   function renderMeta(){
-    const M=currentMeta(), q = (state.metaQ || "").trim().toLowerCase();
-    const maxU = Math.max.apply(null, M.usage.map(u => u.u));
-    let html = `<div class="card"><div class="meta-sync"><div><h2 style="margin-bottom:3px">Meta VGC</h2><p class="muted" style="margin:0">${esc(M.format)} · dados do Pikalytics</p></div><div class="meta-sync-actions"><span class="muted" style="font-size:.76rem"><i class="sync-dot ${state.metaBusy?'busy':''}"></i>${esc(state.metaMsg || ('Coletado em '+M.collected))}</span><button class="primary" onclick="HBP.refreshMeta()" ${state.metaBusy?'disabled':''}>${state.metaBusy?'Atualizando…':'↻ Atualizar Pikalytics'}</button></div></div>`;
-    M.usage.forEach((u, i) => {
-      html += `<div class="usagerow"><span class="urank">${i + 1}</span><span class="uname meta-poke"><img src="${esc(metaSprite(u.n))}" data-pokemon="${esc(u.n)}" onerror="HBP_imgFallback(this)" alt="${esc(u.n)}" loading="lazy"><span><b>${esc(u.n)}</b> <span class="utypes">${metaTypes(u.t)}</span></span></span><span class="uval">${u.u.toFixed(2)}%</span><span class="uwr muted">${u.w ? u.w.toFixed(1)+'% vit.' : '—'}</span><span class="ubar"><i style="width:${(u.u / maxU * 100).toFixed(1)}%"></i></span></div>`;
+    const q = (state.metaQ || "").trim().toLowerCase();
+    const maxU = Math.max.apply(null, META.usage.map(u => u.u));
+    let html = `<div class="card"><h2>Mais usados</h2><p class="muted" style="margin:0 0 6px 0">${esc(META.format)} · uso na ladder do Showdown</p>`;
+    META.usage.forEach((u, i) => {
+      html += `<div class="usagerow"><span class="urank">${i + 1}</span><span class="uname">${esc(u.n)} <span class="utypes">${metaTypes(u.t)}</span></span><span class="uval">${u.u.toFixed(2)}%</span><span class="uwr muted">${u.w.toFixed(1)}% vit.</span><span class="ubar"><i style="width:${(u.u / maxU * 100).toFixed(1)}%"></i></span></div>`;
     });
-    html += `</div><div class="card"><div class="meta-sync"><div><h2 style="margin:0 0 3px">Pesquisar Pokémon</h2><p class="muted" style="margin:0">Pesquise qualquer espécie; o site compara somente regulações oficiais em dupla e mostra a mais usada.</p></div><div class="meta-sync-actions"><input id="meta-search" list="meta-pokemon-list" placeholder="Ex.: Rillaboom" value="${esc(state.metaSearch||"")}" onkeydown="if(event.key==='Enter')HBP.searchMetaPokemon()"><datalist id="meta-pokemon-list">${(state.allPokemon.length?state.allPokemon:M.usage.map(x=>x.n)).map(x=>`<option value="${esc(x)}">`).join("")}</datalist><button class="primary" onclick="HBP.searchMetaPokemon()" ${state.metaDetailBusy?'disabled':''}>${state.metaDetailBusy?'Buscando…':'Pesquisar'}</button></div></div></div>${renderMetaDetail()}${renderDexCatalog()}<div class="card"><h2>Cores mais comuns</h2><p class="muted" style="margin:0 0 6px 0">Pokémon que aparecem juntos nos mesmos times</p>`;
+    html += `</div><div class="card"><h2>Cores mais comuns</h2><p class="muted" style="margin:0 0 6px 0">Pokémon que aparecem juntos nos mesmos times</p>`;
     [["2", "Duplas"], ["3", "Trios"], ["4", "Quartetos"]].forEach(g => {
       html += `<div class="sec2">${g[1]}</div>`;
-      (M.cores[g[0]]||[]).forEach(c => { html += `<div class="corerow"><span>${c.m.map(x=>`<span class="meta-poke"><img src="${esc(metaSprite(x))}" data-pokemon="${esc(x)}" onerror="HBP_imgFallback(this)" style="width:26px;height:26px;flex-basis:26px" alt="${esc(x)}">${esc(x)}</span>`).join(" + ")}</span><span class="muted">${c.c} times · ${c.p}%</span></div>`; });
+      META.cores[g[0]].forEach(c => { html += `<div class="corerow"><span>${c.m.map(esc).join(" + ")}</span><span class="muted">${c.c} times · ${c.p}%</span></div>`; });
     });
-    const teams = (M.teams||[]).filter(t => !q || t.mons.some(m => m.n.toLowerCase().indexOf(q) >= 0));
-    html += `</div><div class="card"><h2>Top teams recentes</h2><div class="metafilter"><input id="meta-q" placeholder="Filtrar por Pokémon (Enter)" value="${esc(state.metaQ || "")}" onkeydown="if(event.key==='Enter')HBP.metaFilter(this.value)">${q ? `<button class="ghost" onclick="HBP.metaFilter('')">Limpar</button>` : ""}</div>`;
+    const teams = META.teams.filter(t => !q || t.mons.some(m => m.n.toLowerCase().indexOf(q) >= 0));
+    html += `</div><div class="card"><h2>Top teams recentes</h2>
+      <div class="metafilter"><input id="meta-q" placeholder="Filtrar por Pokémon (Enter)" value="${esc(state.metaQ || "")}" onkeydown="if(event.key==='Enter')HBP.metaFilter(this.value)">${q ? `<button class="ghost" onclick="HBP.metaFilter('')">Limpar</button>` : ""}</div>`;
     if(!teams.length) html += `<p class="pending">Nenhum time com esse Pokémon.</p>`;
-    teams.forEach(t => { html += `<details class="metateam"><summary><span class="mt-rank">#${t.r}</span> <strong>${esc(t.p)}</strong> <span class="tag">${esc(t.rec)}</span><div class="muted mt-ev">${esc(t.ev)}</div><div class="mt-names">${t.mons.map(m => esc(m.n)).join(" · ")}</div></summary><div class="mt-grid">${t.mons.map(metaMonCard).join("")}</div></details>`; });
-    return html + `</div><div class="card"><p class="muted" style="margin:0;font-size:.8rem">Fonte: <a href="${META.sourceUrl}" target="_blank" rel="noopener" style="color:inherit">Pikalytics</a>. Última coleta: ${esc(M.collected)}. O botão acima atualiza uso, imagens, cores e top teams. Pokémon e nomes relacionados são marcas da Nintendo.</p></div>`;
-  }
-
-  function calcNames(){ const names=[...(state.allPokemon||[])]; (currentMeta().usage||[]).forEach(x=>names.push(x.n)); (currentMeta().teams||[]).forEach(t=>(t.mons||[]).forEach(m=>names.push(m.n))); return [...new Set(names)].sort((a,b)=>a.localeCompare(b)); }
-  function calcOpts(list, val){ return list.map(x=>`<option value="${esc(x)}" ${x===val?'selected':''}>${esc(x)}</option>`).join(""); }
-  function renderCalc(){
-    const c=state.calc, names=calcNames(), moves=[...new Set(["Flare Blitz","Close Combat","Earthquake","Rock Slide","Heat Wave","Moonblast","Shadow Ball","Make It Rain","Fake Out","Grassy Glide","Draco Meteor","Protect",...((currentMeta().teams||[]).flatMap(t=>t.mons.flatMap(m=>m.mv||[])))])].sort();
-    return `<div class="card"><div class="meta-sync"><div><h2 style="margin-bottom:3px">Calculadora de dano</h2><p class="muted" style="margin:0">Gen 9 · modo Doubles · motor do Pokémon Showdown</p></div><a class="ghost" href="https://www.pikalytics.com/damage-calculator" target="_blank" rel="noopener">Abrir Pikalytics ↗</a></div><div class="calcgrid"><div class="calcside"><h3>Atacante</h3><label>Pokémon<select id="calc-att">${calcOpts(names,c.attacker)}</select></label><div class="calcrow"><div><label>Nível<input id="calc-level" type="number" min="1" max="100" value="${c.level}"></label></div><div><label>Natureza<input id="calc-nature" value="${esc(c.nature)}"></label></div></div><div class="calcrow"><div><label>EV Atk<input id="calc-a-atk" type="number" min="0" max="252" value="${c.aAtk}"></label></div><div><label>EV SpA<input id="calc-a-spa" type="number" min="0" max="252" value="${c.aSpA}"></label></div></div><div class="calcrow"><div><label>Item<input id="calc-item" value="${esc(c.item)}" placeholder="Life Orb"></label></div><div><label>Habilidade<input id="calc-ability" value="${esc(c.ability)}" placeholder="Intimidate"></label></div></div><label>Golpe<select id="calc-move">${calcOpts(moves,c.move)}</select></label></div><div class="calcside"><h3>Defensor</h3><label>Pokémon<select id="calc-def">${calcOpts(names,c.defender)}</select></label><div class="calcrow"><div><label>EV HP<input id="calc-d-hp" type="number" min="0" max="252" value="${c.dHp}"></label></div><div><label>EV Def<input id="calc-d-def" type="number" min="0" max="252" value="${c.dDef}"></label></div></div><label>EV SpD<input id="calc-d-spd" type="number" min="0" max="252" value="${c.dSpD}"></label><div class="calcrow"><div><label>Clima<select id="calc-weather"><option value="">Normal</option><option value="Sun" ${c.weather==='Sun'?'selected':''}>Sol</option><option value="Rain" ${c.weather==='Rain'?'selected':''}>Chuva</option><option value="Sand" ${c.weather==='Sand'?'selected':''}>Areia</option><option value="Snow" ${c.weather==='Snow'?'selected':''}>Neve</option></select></label></div><div><label>Terreno<select id="calc-terrain"><option value="">Nenhum</option><option value="Electric" ${c.terrain==='Electric'?'selected':''}>Elétrico</option><option value="Grassy" ${c.terrain==='Grassy'?'selected':''}>Grassy</option><option value="Misty" ${c.terrain==='Misty'?'selected':''}>Misty</option><option value="Psychic" ${c.terrain==='Psychic'?'selected':''}>Psíquico</option></select></label></div></div></div></div><div class="meta-sync-actions" style="margin-top:14px"><button class="primary" onclick="HBP.calculateDamage()">Calcular dano</button><span class="muted calcnote">Os campos de EV são opcionais. O resultado considera rolagem mínima/máxima, STAB, efetividade e campo de Doubles.</span></div><div id="calc-result" class="calcresult"><span class="muted">Escolha os Pokémon e clique em <b>Calcular dano</b>.</span></div></div>`;
-  }
-  function calculateDamage(){
-    const g=id=>document.getElementById(id), c=state.calc;
-    Object.assign(c,{attacker:g('calc-att').value,defender:g('calc-def').value,move:g('calc-move').value,level:Number(g('calc-level').value)||50,nature:g('calc-nature').value||'Adamant',aAtk:Number(g('calc-a-atk').value)||0,aSpA:Number(g('calc-a-spa').value)||0,dHp:Number(g('calc-d-hp').value)||0,dDef:Number(g('calc-d-def').value)||0,dSpD:Number(g('calc-d-spd').value)||0,item:g('calc-item').value,ability:g('calc-ability').value,weather:g('calc-weather').value,terrain:g('calc-terrain').value});
-    const out=document.getElementById('calc-result');
-    try{
-      if(!window.calc || !calc.calculate) throw new Error('motor de cálculo ainda não carregou; verifique a conexão e tente novamente');
-      const gen=calc.Generations.get(9), evA={atk:c.aAtk,spa:c.aSpA}, evD={hp:c.dHp,def:c.dDef,spd:c.dSpD};
-      const a=new calc.Pokemon(gen,c.attacker,{level:c.level,nature:c.nature||'Adamant',evs:evA,item:c.item||undefined,ability:c.ability||undefined});
-      const d=new calc.Pokemon(gen,c.defender,{level:c.level,evs:evD});
-      const move=new calc.Move(gen,c.move); const field=new calc.Field({gameType:'Doubles',weather:c.weather||undefined,terrain:c.terrain||undefined});
-      const r=calc.calculate(gen,a,d,move,field), range=r.range(), maxhp=d.stats.hp, minPct=(range[0]/maxhp*100), maxPct=(range[1]/maxhp*100);
-      out.innerHTML=`<strong>${range[0]}–${range[1]} HP</strong> <span class="muted">(${minPct.toFixed(1)}%–${maxPct.toFixed(1)}% do HP</span>)<br><span class="calcnote">${esc(r.desc ? r.desc() : c.attacker+' com '+c.move+' contra '+c.defender)}<br>Efetividade e modificadores foram calculados pelo motor oficial open source.</span>`;
-    }catch(e){ out.innerHTML=`<b>Não foi possível calcular</b><br><span class="calcnote">${esc(e.message||e)}. Confira o nome do golpe, habilidade ou item e tente de novo.</span>`; }
+    teams.forEach(t => {
+      html += `<details class="metateam"><summary><span class="mt-rank">#${t.r}</span> <strong>${esc(t.p)}</strong> <span class="tag">${esc(t.rec)}</span><div class="muted mt-ev">${esc(t.ev)}</div><div class="mt-names">${t.mons.map(m => esc(m.n)).join(" · ")}</div></summary><div class="mt-grid">${t.mons.map(metaMonCard).join("")}</div></details>`;
+    });
+    html += `</div><div class="card"><p class="muted" style="margin:0;font-size:.8rem">Fonte dos dados: <a href="${META.sourceUrl}" target="_blank" rel="noopener" style="color:inherit">Pikalytics</a> (formato ${esc(META.format)}). Coletados em ${META.collected}; são uma foto desse dia e não atualizam sozinhos. Pokémon e nomes relacionados são marcas da Nintendo.</p></div>`;
+    return html;
   }
 
   const NAV_ICONS = {
@@ -815,12 +620,11 @@ window.SEED = {
     super: '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/><path d="M5 21h14"/></svg>',
     times: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg>',
     meta:  '<svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/></svg>',
-    calc:  '<svg viewBox="0 0 24 24"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h2M14 11h2M8 15h2M14 15h2M8 19h2M14 19h2"/></svg>',
     contas:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.2.7 3.5 2.6 3.5 5.7"/></svg>',
     admins:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>'
   };
   function renderRail(enter){
-    const items = [["liga","Liga HBP"],["copa","Copa HBP"],["super","Super Copa HBP"],["times","Times"],["meta","Meta VGC"],["calc","Calculadora"],["contas","Contas"]];
+    const items = [["liga","Liga HBP"],["copa","Copa HBP"],["super","Super Copa HBP"],["times","Times"],["meta","Meta VGC"],["contas","Contas"]];
     if(state.admin) items.push(["admins","Admins"]);
     return `<nav class="rail ${enter ? "enter" : ""}" aria-label="Setores">${items.map(it => `<a class="railbtn ${state.tab===it[0]?"active":""}" role="button" tabindex="0" title="${it[1]}" aria-label="${it[1]}" data-tip="${it[1]}" onclick="HBP.switchTab('${it[0]}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">${NAV_ICONS[it[0]]}</a>`).join("")}</nav>`;
   }
@@ -840,6 +644,7 @@ window.SEED = {
         ${state.admin ? `<button class="ghost" onclick="HBP.openModal('Novo nome da temporada', HBP.seasonNameOf(${state.season}), 'confirmRename', ${state.season})" title="Renomear temporada">✏️</button>` : ""}
         <button class="avatarbtn" onclick="HBP.switchTab('contas')" title="${esc(me ? me.display_name : '')}"><img src="${avatarFor(me)}" alt=""></button>
         <button class="ghost" onclick="HBP.reload()" title="Atualizar dados">↻</button>
+        <button class="ghost" onclick="HBP.toggleSound()" title="${SFX.isOn() ? 'Desligar sons' : 'Ligar sons'}">${SFX.isOn() ? '🔊' : '🔇'}</button>
         <button class="ghost" onclick="HBP.signOut()">Sair</button>
       </div>
     </div></header>`;
@@ -859,9 +664,6 @@ window.SEED = {
     } else if(state.tab === "meta"){
       title = "META VGC"; label = "Formato atual"; big = "Reg M-C";
       text = "Pokémon Champions VGC 2026 · dados do Pikalytics";
-    } else if(state.tab === "calc"){
-      title = "CALCULADORA DE DANO HPB"; label = "Modo"; big = "Duplas";
-      text = "Calcule dano entre qualquer Pokémon · Gen 9 · Doubles";
     } else if(state.tab === "contas"){
       title = "CONTAS"; label = "Membros"; big = String(state.profiles.filter(p => p.status === "approved").length);
       text = "contas aprovadas no site";
@@ -878,7 +680,7 @@ window.SEED = {
       const sp = superInfo(n); champ = sp ? sp.winner : null;
       text = sp ? `${sp.ligaChampion} (Liga) x ${sp.copaChampion} (Copa)` : "Aguardando os campeões da Liga e da Copa.";
     }
-    return `<section class="hero"><div><span class="hero-pill">${state.tab === "calc" ? "FERRAMENTAS HBP" : esc(seasonName(n))}</span><h1 class="hero-title">${title}</h1></div>
+    return `<section class="hero"><div><span class="hero-pill">${esc(seasonName(n))}</span><h1 class="hero-title">${title}</h1></div>
       <div class="hero-card"><div class="hc-label">${label}</div><div class="hc-name">${big != null ? big : (champ ? "🏆 " + esc(champ) : "A definir")}</div><p>${text}</p></div></section>`;
   }
 
@@ -1179,6 +981,7 @@ window.SEED = {
     if(/Email not confirmed/i.test(m)) return "Confirme seu e-mail (veja a caixa de entrada) antes de entrar.";
     if(/Password should be at least/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
     if(/rate limit/i.test(m)) return "Muitas tentativas. Espere um pouco e tente de novo.";
+    if(/maximum allowed size|exceeded|too large|payload/i.test(m)) return "Arquivo maior que o limite do Supabase. Rode de novo o hbp_supabase.sql atualizado (ele aumenta o limite) ou use um arquivo menor.";
     if(/duplicate key|profiles_player_name_key/i.test(m)) return "Esse jogador já está ligado a outra conta.";
     if(/row-level security|permission denied/i.test(m)) return "Sem permissão para isso.";
     if(/Failed to fetch|NetworkError/i.test(m)) return "Sem conexão com o servidor. Confira a internet e a configuração do Supabase.";
@@ -1247,14 +1050,16 @@ window.SEED = {
     render();
     if(!isAdmin() || !D) return;
     const r = await sb.from("app_state").upsert({ id: 1, data: stripTeams(D) });
-    if(r.error){ state.notice = "Não consegui salvar: " + friendlyError(r.error); render(); }
+    if(r.error){ state.notice = "Não consegui salvar: " + friendlyError(r.error); SFX.play("error"); render(); }
+    else SFX.play("success");
   }
   async function persistTeam(n, weekNumber, player){
     render();
     const bag = teamsBag(n, weekNumber);
     const mons = (bag && bag[player]) || [];
     const r = await sb.from("teams").upsert({ season: n, week: weekNumber, player, mons }, { onConflict: "season,week,player" });
-    if(r.error){ state.notice = "Não consegui salvar o time: " + friendlyError(r.error); render(); }
+    if(r.error){ state.notice = "Não consegui salvar o time: " + friendlyError(r.error); SFX.play("error"); render(); }
+    else SFX.play("success");
   }
 
   // ======================= IMAGENS =======================
@@ -1271,19 +1076,49 @@ window.SEED = {
   let pendingFiles = { avatar: null, banner: null };
   function blobToDataUrl(b){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error("não consegui ler a imagem")); r.readAsDataURL(b); }); }
   // Tenta o Storage do Supabase; se falhar (bucket/permissão), grava a imagem direto no perfil.
+  const AV_MAX = 4 * 1024 * 1024, BN_MAX = 8 * 1024 * 1024;   // iguais aos limites dos buckets no SQL
+  async function isAnimatedImage(file){
+    if(file.type === "image/gif") return true;
+    if(file.type === "image/webp"){
+      const b = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+      const tag = (i, s) => String.fromCharCode.apply(null, Array.prototype.slice.call(b, i, i + s.length)) === s;
+      return tag(0, "RIFF") && tag(8, "WEBP") && tag(12, "VP8X") && (b[20] & 0x02) !== 0;
+    }
+    return false;
+  }
+  async function cleanupOldImages(bucket, uid, keepPath){
+    try {
+      const l = await sb.storage.from(bucket).list(uid);
+      if(l.error || !l.data) return;
+      const rm = l.data.map(f => uid + "/" + f.name).filter(x => x !== keepPath);
+      if(rm.length) await sb.storage.from(bucket).remove(rm);
+    } catch(e){}
+  }
   async function saveProfileImage(kind, uid, file){
     const isAv = kind === "avatar";
     const bucket = isAv ? "avatars" : "banners";
+    // GIF / WebP animado: envia o arquivo ORIGINAL (se passasse pelo redimensionador, perderia a animação)
+    if(await isAnimatedImage(file)){
+      const limit = isAv ? AV_MAX : BN_MAX;
+      if(file.size > limit) throw new Error("Esse arquivo animado tem " + (file.size / 1048576).toFixed(1) + " MB. O máximo é " + (limit / 1048576) + " MB para " + (isAv ? "a foto" : "o banner") + ".");
+      const path = uid + "/" + kind + "-" + Date.now() + "." + (file.type === "image/gif" ? "gif" : "webp");
+      const url = await uploadImage(bucket, path, file);
+      cleanupOldImages(bucket, uid, path);
+      return url;
+    }
     const path = isAv ? `${uid}/avatar.png` : `${uid}/banner.jpg`;
     try {
       const blob = isAv ? await resizeToBlob(file, 256, 256, "image/png") : await resizeToBlob(file, 1200, 400, "image/jpeg", 0.85);
-      return (await uploadImage(bucket, path, blob)) + "?v=" + Date.now();
+      const url = (await uploadImage(bucket, path, blob)) + "?v=" + Date.now();
+      cleanupOldImages(bucket, uid, path);
+      return url;
     } catch(e){
       console.warn("Storage falhou, usando fallback:", e);
       const blob = isAv ? await resizeToBlob(file, 256, 256, "image/jpeg", 0.85) : await resizeToBlob(file, 900, 300, "image/jpeg", 0.75);
       return await blobToDataUrl(blob);
     }
   }
+
   function loadImg(file){
     return new Promise((res, rej) => {
       const u = URL.createObjectURL(file), i = new Image();
@@ -1379,8 +1214,8 @@ window.SEED = {
       <h3 style="margin-bottom:12px">Editar meu perfil</h3>
       <div class="row1"><label>Nome de exibição</label><input id="pf-name" value="${esc(p.display_name)}"></div>
       <div class="row1"><label>Bio</label><textarea id="pf-bio" rows="3">${esc(p.bio)}</textarea></div>
-      <div class="row1"><label>Foto (quadrada fica melhor)</label><input id="pf-avatar" type="file" accept="image/*" onchange="HBP.pickFile('avatar', this)"><div id="pf-avatar-name" class="muted" style="font-size:.78rem;margin-top:4px"></div></div>
-      <div class="row1"><label>Banner (imagem larga, aparece esmaecendo até o fundo)</label><input id="pf-banner" type="file" accept="image/*" onchange="HBP.pickFile('banner', this)"><div id="pf-banner-name" class="muted" style="font-size:.78rem;margin-top:4px"></div></div>
+      <div class="row1"><label>Foto (quadrada fica melhor · GIF animado vale, até 4 MB)</label><input id="pf-avatar" type="file" accept="image/*" onchange="HBP.pickFile('avatar', this)"><div id="pf-avatar-name" class="muted" style="font-size:.78rem;margin-top:4px"></div></div>
+      <div class="row1"><label>Banner (imagem larga, esmaece até o fundo · GIF animado vale, até 8 MB)</label><input id="pf-banner" type="file" accept="image/*" onchange="HBP.pickFile('banner', this)"><div id="pf-banner-name" class="muted" style="font-size:.78rem;margin-top:4px"></div></div>
       ${state.profileMsg ? `<p style="color:#ff8a80;font-size:.85rem;margin:8px 0 0">Não consegui salvar: ${esc(state.profileMsg)}</p>` : ""}
       <div class="modalbtns" style="margin-top:14px"><button class="ghost" onclick="HBP.closeProfile()">Cancelar</button><button class="primary" onclick="HBP.saveProfile()" ${state.profileBusy ? "disabled" : ""}>${state.profileBusy ? "Salvando…" : "Salvar"}</button></div>
     </div></div>`;
@@ -1389,7 +1224,7 @@ window.SEED = {
   function render(){
     const app = document.getElementById("app");
     document.body.classList.remove("hasrail");
-    if(state.booting){ app.innerHTML = `<div class="loading-screen" role="status" aria-live="polite"><div class="loading-card"><img class="loading-logo" src="${LOGO_URI}" alt="Hospício Battle Pokémon"><div class="loading-ball" aria-hidden="true"></div><b>Carregando HBP…</b><p>Preparando sua batalha Pokémon</p></div></div>`; return; }
+    if(state.booting){ app.innerHTML = renderGate(`<p class="muted" style="text-align:center">Carregando…</p>`); return; }
     if(!SB_OK()){
       app.innerHTML = renderGate(`<h2 class="authtitle">Falta configurar o Supabase</h2><p class="muted">Abra o arquivo <b>index.html</b>, procure por <b>SUPABASE_URL</b> e <b>SUPABASE_KEY</b> e cole a Project URL e a chave pública do seu projeto.</p>`);
       return;
@@ -1408,7 +1243,6 @@ window.SEED = {
     else if(tab === "copa") body += renderCopa(state.season);
     else if(tab === "times") body += renderTimes(state.season);
     else if(tab === "meta") body += renderMeta();
-    else if(tab === "calc") body += renderCalc();
     else if(tab === "contas") body += renderContas();
     else if(tab === "admins") body += renderAdmins();
     else body += renderSuper(state.season);
@@ -1420,8 +1254,6 @@ window.SEED = {
   }
 
   async function boot(){
-    loadMetaCache();
-    loadAllPokemon();
     render();
     if(!SB_OK()){ state.booting = false; render(); return; }
     try {
@@ -1436,6 +1268,126 @@ window.SEED = {
     }
   }
 
+
+  // ======================= SONS DA INTERFACE (Web Audio — sem arquivos de áudio) =======================
+  // Regras seguidas: sons curtos, volume baixo, tom que sobe = positivo / desce = erro,
+  // variação leve de tom (evita cansar), escala pentatônica (sempre soa bem) e botão de silenciar.
+  const SFX = (function(){
+    const KEY = "hbp_sound";
+    let ctx = null, master = null, enabled = true, lastHover = null;
+    try { if(localStorage.getItem(KEY) === "0") enabled = false; } catch(e){}
+    const PENTA = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5];
+    let lastNote = -1; const lastAt = {};
+    const MIN_GAP = { hover: 70, click: 25, tap: 25, nav: 60, pop: 40, open: 80, close: 80, on: 80, off: 80, success: 200, error: 200, ping: 200 };
+    function ensure(){
+      if(!enabled) return null;
+      if(!ctx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(!AC) return null;
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = 0.5;
+        const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 6;
+        master.connect(comp); comp.connect(ctx.destination);
+      }
+      if(ctx.state === "suspended") ctx.resume();
+      return ctx;
+    }
+    function env(g, t0, peak, attack, dur){
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    }
+    function tone(o){
+      const c = ctx, t0 = c.currentTime + (o.delay || 0);
+      const osc = c.createOscillator(), g = c.createGain();
+      osc.type = o.type || "sine";
+      const f = o.f * (1 + (Math.random() - 0.5) * (o.jitter == null ? 0.02 : o.jitter));
+      osc.frequency.setValueAtTime(f, t0);
+      if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, t0 + o.dur);
+      env(g, t0, o.vol || 0.15, o.attack || 0.004, o.dur);
+      if(o.lp){ const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = o.lp; osc.connect(lp); lp.connect(g); }
+      else osc.connect(g);
+      g.connect(master);
+      osc.start(t0); osc.stop(t0 + o.dur + 0.03);
+    }
+    function noise(o){
+      const c = ctx, t0 = c.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(c.sampleRate * o.dur));
+      const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+      for(let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = c.createBufferSource(); src.buffer = buf;
+      const f = c.createBiquadFilter(); f.type = o.hp ? "highpass" : "bandpass";
+      f.frequency.setValueAtTime(o.f0, t0);
+      if(o.f1) f.frequency.exponentialRampToValueAtTime(o.f1, t0 + o.dur);
+      f.Q.value = o.q || 1;
+      const g = c.createGain(); env(g, t0, o.vol || 0.08, o.attack || 0.003, o.dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t0);
+    }
+    function note(){ let i; do { i = Math.floor(Math.random() * PENTA.length); } while(i === lastNote); lastNote = i; return PENTA[i]; }
+    const SOUNDS = {
+      // quase imperceptível: um "tic" curto numa nota da pentatônica
+      hover(){ tone({ f: note(), dur: 0.045, vol: 0.05, attack: 0.004 }); },
+      // clique principal: baque macio + estalinho
+      click(){ tone({ f: 300, f2: 150, dur: 0.075, vol: 0.2 }); noise({ f0: 2600, hp: true, dur: 0.022, vol: 0.05, q: 0.7 }); },
+      // clique leve (botões secundários)
+      tap(){ tone({ f: 680, f2: 520, dur: 0.06, vol: 0.12, type: "triangle", lp: 3200 }); },
+      // trocar de aba: "swish" curto
+      nav(){ noise({ f0: 600, f1: 2400, dur: 0.12, vol: 0.07, q: 0.9, attack: 0.02 }); tone({ f: 880, f2: 1150, dur: 0.07, vol: 0.05 }); },
+      // escolher uma opção
+      pop(){ tone({ f: 740, f2: 990, dur: 0.055, vol: 0.11 }); },
+      // abrir / fechar janelas: sobe / desce
+      open(){ tone({ f: 420, f2: 780, dur: 0.13, vol: 0.12 }); },
+      close(){ tone({ f: 700, f2: 380, dur: 0.11, vol: 0.1 }); },
+      // ligar / desligar: duas notas, subindo / descendo
+      on(){ tone({ f: 523.25, dur: 0.09, vol: 0.12 }); tone({ f: 783.99, dur: 0.14, vol: 0.12, delay: 0.07 }); },
+      off(){ tone({ f: 783.99, dur: 0.09, vol: 0.1 }); tone({ f: 523.25, dur: 0.14, vol: 0.1, delay: 0.07 }); },
+      // sucesso: arpejo ascendente (dó-mi-sol-dó)
+      success(){ [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => { tone({ f, dur: 0.22, vol: 0.12, delay: i * 0.055, jitter: 0 }); tone({ f: f * 2, dur: 0.12, vol: 0.03, delay: i * 0.055, jitter: 0, type: "triangle" }); }); },
+      // erro: duas notas graves, descendo
+      error(){ tone({ f: 220, f2: 170, dur: 0.18, vol: 0.16, type: "triangle", lp: 900 }); tone({ f: 165, f2: 130, dur: 0.2, vol: 0.15, type: "triangle", lp: 800, delay: 0.11 }); },
+      // aviso: sininho
+      ping(){ tone({ f: 880, dur: 0.3, vol: 0.09, jitter: 0 }); tone({ f: 1320, dur: 0.22, vol: 0.04, jitter: 0 }); }
+    };
+    function play(name){
+      if(!enabled || !SOUNDS[name]) return;
+      const c = ensure(); if(!c) return;
+      const now = performance.now();
+      if(lastAt[name] && now - lastAt[name] < (MIN_GAP[name] || 30)) return;
+      lastAt[name] = now;
+      try { SOUNDS[name](); } catch(e){}
+    }
+    function toggle(){
+      enabled = !enabled;
+      try { localStorage.setItem(KEY, enabled ? "1" : "0"); } catch(e){}
+      if(enabled) play("on");
+      return enabled;
+    }
+    function init(){
+      const canHover = window.matchMedia && window.matchMedia("(hover: hover)").matches;
+      const HOVERABLE = "button:not(:disabled), a[onclick], summary, select, .mon";
+      if(canHover){
+        document.addEventListener("mouseover", e => {
+          const el = e.target.closest ? e.target.closest(HOVERABLE) : null;
+          if(el && el !== lastHover){ lastHover = el; play("hover"); }
+          else if(!el){ lastHover = null; }
+        }, true);
+      }
+      document.addEventListener("click", e => {
+        const el = e.target.closest ? e.target.closest("button, a[onclick], summary, .mon") : null;
+        if(!el) return;
+        const oc = el.getAttribute("onclick") || "";
+        if(/toggleAdmin|toggleSound/.test(oc)) return;
+        if(/switchTab/.test(oc)) play("nav");
+        else if(/pickSeason|toggleSeasons/.test(oc)) play("pop");
+        else if(/(^|\s)primary(\s|$)/.test(el.className)) play("click");
+        else play("tap");
+      }, true);
+      document.addEventListener("change", e => { if(e.target && e.target.tagName === "SELECT") play("pop"); }, true);
+      ["pointerdown", "keydown"].forEach(ev => window.addEventListener(ev, () => { if(enabled) ensure(); }, { once: true, passive: true }));
+    }
+    return { play, toggle, init, isOn: () => enabled };
+  })();
 
   const HBP = {
     seasonNameOf(n){ return seasonName(n); },
@@ -1466,8 +1418,8 @@ window.SEED = {
       };
       reader.readAsDataURL(file);
     },
-    openMon(n, w, p, i){ state.monView = { n, w, p, i }; render(); },
-    closeMon(){ state.monView = null; render(); },
+    openMon(n, w, p, i){ state.monView = { n, w, p, i }; SFX.play("open"); render(); },
+    closeMon(){ state.monView = null; SFX.play("close"); render(); },
     saveMon(){
       const v = state.monView; const mon = v && getMon(v); if(!mon || !canEdit(v.p)) return;
       const g = id => (document.getElementById(id).value || "").trim();
@@ -1495,16 +1447,12 @@ window.SEED = {
       state.adminOn = !state.adminOn;
       try { localStorage.setItem(ADMIN_KEY, state.adminOn ? "1" : "0"); } catch(e){}
       state.admin = isAdmin() && state.adminOn;
+      SFX.play(state.adminOn ? "on" : "off");
       if(!state.admin){ state.modal = null; if(state.tab === "admins") state.tab = "liga"; }
       state.seasonOpen = false;
       render();
     },
     metaFilter(v){ state.metaQ = String(v || "").trim(); render(); },
-    dexFilter(v){ state.dexQ = String(v || "").trim(); render(); },
-    refreshMeta,
-    searchMetaPokemon,
-    clearMetaSearch(){ state.metaSearch=""; state.metaDetail=null; state.metaDetailMsg=""; render(); },
-    calculateDamage,
     applySet(i, btn){
       const s = (state._sets || [])[i]; if(!s) return;
       const put = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
@@ -1533,6 +1481,7 @@ window.SEED = {
           state.session = r.data.session;
           state.booting = true; render();
           await afterAuth();
+          SFX.play("success");
           state.authBusy = false;
           return;
         }
@@ -1541,6 +1490,7 @@ window.SEED = {
         if(r.data && r.data.session){
           state.session = r.data.session; state.booting = true; render();
           await afterAuth();
+          SFX.play("success");
           state.authBusy = false;
           return;
         }
@@ -1554,8 +1504,8 @@ window.SEED = {
     },
     async reload(){ state.booting = true; render(); await afterAuth(); },
     pickFile(kind, el){ const f = el.files && el.files[0] ? el.files[0] : null; pendingFiles[kind] = f; const n = document.getElementById("pf-" + kind + "-name"); if(n) n.textContent = f ? "Selecionado: " + f.name : ""; },
-    openProfile(){ pendingFiles = { avatar: null, banner: null }; state.profileEdit = true; state.profileMsg = ""; render(); },
-    closeProfile(){ pendingFiles = { avatar: null, banner: null }; state.profileEdit = false; render(); },
+    openProfile(){ pendingFiles = { avatar: null, banner: null }; state.profileEdit = true; state.profileMsg = ""; SFX.play("open"); render(); },
+    closeProfile(){ pendingFiles = { avatar: null, banner: null }; state.profileEdit = false; SFX.play("close"); render(); },
     async saveProfile(){
       const uid = state.session.user.id;
       const val = id => { const el = document.getElementById(id); return el ? el.value : ""; };
@@ -1589,8 +1539,8 @@ window.SEED = {
       if(!pf.error){ state.profiles = pf.data || []; const me = state.profiles.find(p => p.id === state.profile.id); if(me) state.profile = me; }
       render();
     },
-    openModal(label, value, action, context, type){ state.modal = { label, value, action, context, type: type || "text" }; render(); },
-    closeModal(){ state.modal = null; render(); },
+    openModal(label, value, action, context, type){ state.modal = { label, value, action, context, type: type || "text" }; SFX.play("open"); render(); },
+    closeModal(){ state.modal = null; SFX.play("close"); render(); },
     submitModal(){
       const val = document.getElementById("modal-input").value;
       const m = state.modal;
@@ -1598,7 +1548,8 @@ window.SEED = {
       if(m && HBP[m.action]) HBP[m.action](val, m.context);
       else render();
     },
-    notify(text){ state.notice = text; render(); },
+    notify(text){ state.notice = text; SFX.play(/erro|não consegui|sem permiss|incorret|inválid|preencha/i.test(String(text)) ? "error" : "ping"); render(); },
+    toggleSound(){ SFX.toggle(); render(); },
     dismissNotice(){ state.notice = null; render(); },
     confirmRenameMon(val, ctx){
       if(!val || !val.trim()) return render();
@@ -1654,7 +1605,8 @@ window.SEED = {
       persist();
     }
   };
-  window.HBP = HBP; window.HBP_imgFallback = imgFallback;
+  window.HBP = HBP;
+  SFX.init();
   window.HBP_badge = badge; window.HBP_TYPES = TYPE_IMG;
   boot();
 })();
